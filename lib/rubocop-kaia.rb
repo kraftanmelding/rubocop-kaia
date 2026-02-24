@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+require 'rubocop'
+
+require_relative 'rubocop/cop/kaia/service_entry_point'
+require_relative 'rubocop/cop/kaia/service_file_inheritance'
+require_relative 'rubocop/cop/kaia/service_file_suffix'
+require_relative 'rubocop/cop/kaia/service_suffix'

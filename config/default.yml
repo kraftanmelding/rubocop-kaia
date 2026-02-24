@@ -1,0 +1,19 @@
+Kaia/ServiceEntryPoint:
+  Enabled: true
+  Description: 'Service classes should only be called via .call'
+  SafeAutoCorrect: false
+
+Kaia/ServiceFileInheritance:
+  Enabled: true
+  Description: 'Classes defined in app/services must inherit from a "Service"-suffixed parent class.'
+  SafeAutoCorrect: false
+
+Kaia/ServiceFileSuffix:
+  Enabled: true
+  Description: 'Classes defined in app/services must have a "Service" suffix.'
+  SafeAutoCorrect: false
+
+Kaia/ServiceSuffix:
+  Enabled: true
+  Description: 'Service classes should have a "Service" suffix.'
+  SafeAutoCorrect: false
