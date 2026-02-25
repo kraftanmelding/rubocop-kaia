@@ -53,3 +53,4 @@ Tests use `RuboCop::RSpec::ExpectOffense` helpers (`expect_offense` / `expect_no
 - Do not add runtime dependencies beyond `rubocop`.
 - Do not modify `.github/workflows/ci.yml` Ruby version matrix without also verifying that the gem's `required_ruby_version` in the gemspec is consistent.
 - Do not commit a gem version bump without a corresponding changelog entry (once one exists).
+- Each commit must contain exactly one logical change. Do not bundle unrelated fixes or additions into a single commit.
