@@ -58,7 +58,7 @@ end
 
 ### `Kaia/ServiceFileSuffix`
 
-Classes defined under `app/services/` must end with `Service`.
+Classes defined under `app/services/` must end with `Service`. Nested classes are exempt.
 
 ```ruby
 # bad — in app/services/payment_processor.rb
