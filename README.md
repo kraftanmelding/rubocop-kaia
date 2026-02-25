@@ -13,13 +13,19 @@ gem 'rubocop-kaia', require: false
 Then add to your `.rubocop.yml`:
 
 ```yaml
+inherit_gem:
+  rubocop-kaia:
+    - config/default.yml
+
 require:
   - rubocop-kaia
 ```
 
+`inherit_gem` loads the default configuration (all cops enabled). Without it, the cops are loaded but not active.
+
 ## Cops
 
-All cops live under the `Kaia/` department and are enabled by default.
+All cops live under the `Kaia/` department.
 
 ### `Kaia/ServiceEntryPoint`
 
