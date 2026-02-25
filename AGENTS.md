@@ -4,7 +4,7 @@ Guidelines for AI agents working in this repository.
 
 ## Project overview
 
-`rubocop-kaia` is a RuboCop extension gem that adds custom cops enforcing service class conventions. All cops live under `lib/rubocop/cop/kaia/` and are registered in `lib/rubocop-kaia.rb`.
+`rubocop-kaia` is a RuboCop extension gem that houses all custom RuboCop cops for Kaia projects. Currently it enforces service class conventions, but any future custom cops should be added here too. All cops live under `lib/rubocop/cop/kaia/` and are registered in `lib/rubocop-kaia.rb`.
 
 ## Repository layout
 
