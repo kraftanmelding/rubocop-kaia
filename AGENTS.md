@@ -42,7 +42,7 @@ Tests use `RuboCop::RSpec::ExpectOffense` helpers (`expect_offense` / `expect_no
 
 ## Code conventions
 
-- All files start with `# frozen_string_literal: true`.
+- All Ruby files start with `# frozen_string_literal: true`.
 - Cops are namespaced under `RuboCop::Cop::Kaia`.
 - Use `add_offense(node)` targeting the most specific node (e.g. `node.identifier` rather than `node`).
 - No auto-correct (`SafeAutoCorrect: false`) unless the fix is unambiguous.
