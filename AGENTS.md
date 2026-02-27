@@ -8,18 +8,22 @@ Guidelines for AI agents working in this repository.
 
 ## Repository layout
 
-```
+```txt
 lib/
   rubocop-kaia.rb                        # Entry point — requires all cops
   rubocop/cop/kaia/
     service_entry_point.rb               # Kaia/ServiceEntryPoint cop
     service_file_inheritance.rb          # Kaia/ServiceFileInheritance cop
     service_file_suffix.rb               # Kaia/ServiceFileSuffix cop
+    service_no_added_class_methods.rb    # Kaia/ServiceNoAddedClassMethods cop
+    service_no_added_public_methods.rb   # Kaia/ServiceNoAddedPublicMethods cop
     service_suffix.rb                    # Kaia/ServiceSuffix cop
 spec/rubocop/cop/kaia/
     service_entry_point_spec.rb
     service_file_inheritance_spec.rb
     service_file_suffix_spec.rb
+    service_no_added_class_methods_spec.rb
+    service_no_added_public_methods_spec.rb
     service_suffix_spec.rb
 config/default.yml                       # Default enabled/disabled state for all cops
 rubocop-kaia.gemspec

@@ -13,6 +13,16 @@ Kaia/ServiceFileSuffix:
   Description: 'Classes defined in app/services must have a "Service" suffix.'
   SafeAutoCorrect: false
 
+Kaia/ServiceNoAddedClassMethods:
+  Enabled: true
+  Description: 'Service classes should not define class methods.'
+  SafeAutoCorrect: false
+
+Kaia/ServiceNoAddedPublicMethods:
+  Enabled: true
+  Description: 'Only the `call` method can be public in a Service.'
+  SafeAutoCorrect: false
+
 Kaia/ServiceSuffix:
   Enabled: true
   Description: 'Service classes should have a "Service" suffix.'

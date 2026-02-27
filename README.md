@@ -84,6 +84,47 @@ class PaymentProcessingService < ApplicationService
 end
 ```
 
+### `Kaia/ServiceNoAddedPublicMethods`
+
+Service classes can only have `call` as a public instance method. Any other public instance method is an offense. Private or protected methods are permitted. Nested classes inside the service are exempt from this rule.
+
+```ruby
+# bad
+class PaymentProcessingService < ApplicationService
+  def call; end
+  def perform; end
+end
+
+# good
+class PaymentProcessingService < ApplicationService
+  def call; end
+
+  private
+  def helper; end
+end
+```
+
+### `Kaia/ServiceNoAddedClassMethods`
+
+Service classes must not define class methods. Any singleton class method (`def self.method`) or singleton class definition (`class << self`) is an offense. The only exception is `def self.call`, which is permitted. Nested classes inside the service are exempt.
+
+```ruby
+# bad
+class PaymentProcessingService < ApplicationService
+  def self.helper; end
+  
+  class << self
+    def another_helper; end
+  end
+end
+
+# good
+class PaymentProcessingService < ApplicationService
+  def self.call; end
+  def call; end
+end
+```
+
 ## Requirements
 
 - Ruby >= 3.1
@@ -97,7 +138,3 @@ bundle exec rspec
 ```
 
 CI runs against Ruby 3.1, 3.2, and 3.3.
-
-## License
-
-See [LICENSE](LICENSE).
