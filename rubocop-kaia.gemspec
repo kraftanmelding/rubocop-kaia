@@ -6,8 +6,9 @@ Gem::Specification.new do |spec|
   spec.authors = ['Kaia']
   spec.summary = 'Custom RuboCop cops for Kaia projects'
   spec.description = 'A collection of custom RuboCop cops enforcing service class conventions.'
+  spec.license = 'MIT'
 
-  spec.files = Dir['lib/**/*', 'config/**/*']
+  spec.files = Dir['lib/**/*', 'config/**/*', 'LICENSE']
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 3.1'
