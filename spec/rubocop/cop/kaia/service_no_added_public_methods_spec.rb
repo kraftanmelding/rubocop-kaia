@@ -10,7 +10,7 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceNoAddedPublicMethods, :config do
         end
 
         def perform
-        ^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only the `call` method can be public in a Service class.
+        ^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only `call` and `initialize` methods can be public in a Service class.
         end
       end
     RUBY
@@ -75,11 +75,24 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceNoAddedPublicMethods, :config do
     expect_offense(<<~RUBY)
       class TestService
         def method_one
-        ^^^^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only the `call` method can be public in a Service class.
+        ^^^^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only `call` and `initialize` methods can be public in a Service class.
         end
 
         def method_two
-        ^^^^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only the `call` method can be public in a Service class.
+        ^^^^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only `call` and `initialize` methods can be public in a Service class.
+        end
+      end
+    RUBY
+  end
+
+  it 'does not register an offense for public initialize method in a Service class' do
+    expect_no_offenses(<<~RUBY)
+      class MyService
+        def initialize(params)
+          @params = params
+        end
+
+        def call
         end
       end
     RUBY

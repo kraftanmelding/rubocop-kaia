@@ -6,11 +6,12 @@ module RuboCop
       class ServiceNoAddedPublicMethods < Base
         include VisibilityHelp
 
-        MSG = 'Only the `call` method can be public in a Service class.'
+        MSG = 'Only `call` and `initialize` methods can be public in a Service class.'
 
         def on_def(node)
           return unless inside_service_class?(node)
           return if node.method_name == :call
+          return if node.method_name == :initialize
           return unless node_visibility(node) == :public
 
           add_offense(node)
