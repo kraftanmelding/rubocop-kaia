@@ -112,14 +112,14 @@ module RuboCop
         def add_prepend_memo_wise(def_node, corrector)
           class_node = def_node.each_ancestor(:class, :module).first
           return unless class_node
-          return if has_prepend_memo_wise?(class_node)
+          return if prepend_memo_wise_present?(class_node)
 
           body = class_node.body
           indent = ' ' * body.loc.column
           corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
         end
 
-        def has_prepend_memo_wise?(class_node) # rubocop:disable Naming/PredicateName
+        def prepend_memo_wise_present?(class_node)
           body = class_node.body
           return false unless body
 
