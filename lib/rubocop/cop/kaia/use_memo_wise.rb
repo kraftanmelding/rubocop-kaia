@@ -31,6 +31,11 @@ module RuboCop
           (or_asgn (ivasgn _) _)
         PATTERN
 
+        # @!method prepend_memo_wise?(node)
+        def_node_matcher :prepend_memo_wise?, <<~PATTERN
+          (send nil? :prepend (const nil? :MemoWise))
+        PATTERN
+
         def on_def(node)
           return if or_asgn_memoization?(node)
 
@@ -47,6 +52,7 @@ module RuboCop
           add_offense(node) do |corrector|
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
             corrector.replace(body, unwrap_begin_source(body.children[1], body.loc.column))
+            add_prepend_memo_wise(node, corrector)
           end
         end
 
@@ -68,6 +74,7 @@ module RuboCop
             rhs = assignment.children[1]
             replacement = (middle + [unwrap_begin_source(rhs, body.loc.column)]).join("\n#{indent}")
             corrector.replace(body, replacement)
+            add_prepend_memo_wise(node, corrector)
           end
         end
 
@@ -99,6 +106,27 @@ module RuboCop
             node.children.map(&:source).join("\n#{indent}")
           else
             node.source
+          end
+        end
+
+        def add_prepend_memo_wise(def_node, corrector)
+          class_node = def_node.each_ancestor(:class, :module).first
+          return unless class_node
+          return if has_prepend_memo_wise?(class_node)
+
+          body = class_node.body
+          indent = ' ' * body.loc.column
+          corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
+        end
+
+        def has_prepend_memo_wise?(class_node) # rubocop:disable Naming/PredicateName
+          body = class_node.body
+          return false unless body
+
+          if body.begin_type?
+            body.children.any? { |child| prepend_memo_wise?(child) }
+          else
+            prepend_memo_wise?(body)
           end
         end
       end

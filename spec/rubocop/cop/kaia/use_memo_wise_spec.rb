@@ -330,4 +330,139 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
     end
   end
+
+  context 'when adding prepend MemoWise' do
+    it 'adds prepend MemoWise to a class for ||= pattern' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise to a class for defined? pattern' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            return @result if defined?(@result)
+            @result = expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise to a module' do
+      expect_offense(<<~RUBY)
+        module MyModule
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module MyModule
+          prepend MemoWise
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise to a class with inheritance' do
+      expect_offense(<<~RUBY)
+        class MyClass < BaseClass
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass < BaseClass
+          prepend MemoWise
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'does not add prepend MemoWise if already present' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise to the innermost class in nested classes' do
+      expect_offense(<<~RUBY)
+        module Outer
+          class Inner
+            def method
+            ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+              @result ||= expensive_call
+            end
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module Outer
+          class Inner
+            prepend MemoWise
+
+            memo_wise def method
+              expensive_call
+            end
+          end
+        end
+      RUBY
+    end
+  end
 end
