@@ -125,6 +125,28 @@ class PaymentProcessingService < ApplicationService
 end
 ```
 
+### `Kaia/UseMemoWise`
+
+Detects manual memoization patterns and suggests using `memo_wise` instead. Supports autocorrection for instance methods and `class << self` methods. `def self.method` patterns are flagged but not autocorrected (use `class << self` instead).
+
+```ruby
+# bad
+def method
+  @ivar ||= expensive_call
+end
+
+# bad
+def method
+  return @ivar if defined?(@ivar)
+  @ivar = expensive_call
+end
+
+# good
+memo_wise def method
+  expensive_call
+end
+```
+
 ## Requirements
 
 - Ruby >= 3.1
