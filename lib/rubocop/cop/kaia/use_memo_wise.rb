@@ -41,6 +41,7 @@ module RuboCop
 
           defined_memoization?(node)
         end
+        alias on_defs on_def
 
         private
 
@@ -49,7 +50,7 @@ module RuboCop
           body = node.body
           return false unless body && or_asgn_ivar?(body)
 
-          add_offense(node) do |corrector|
+          register_offense(node) do |corrector|
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
             corrector.replace(body, unwrap_begin_source(body.children[1], body.loc.column))
             add_prepend_memo_wise(node, corrector)
@@ -67,7 +68,7 @@ module RuboCop
           return false unless defined_guard?(guard) && assignment.ivasgn_type?
           return false unless matching_ivars?(guard, assignment)
 
-          add_offense(node) do |corrector|
+          register_offense(node) do |corrector|
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
             indent = ' ' * body.loc.column
             middle = body.children[1...-1].map(&:source)
@@ -75,6 +76,17 @@ module RuboCop
             replacement = (middle + [unwrap_begin_source(rhs, body.loc.column)]).join("\n#{indent}")
             corrector.replace(body, replacement)
             add_prepend_memo_wise(node, corrector)
+          end
+        end
+
+        # For `def self.method` (defs nodes), auto-correction is not possible
+        # because `memo_wise def self.method` is not valid MemoWise syntax.
+        # Class methods must be memoized inside a `class << self` block.
+        def register_offense(node, &block)
+          if node.defs_type?
+            add_offense(node)
+          else
+            add_offense(node, &block)
           end
         end
 
@@ -110,7 +122,7 @@ module RuboCop
         end
 
         def add_prepend_memo_wise(def_node, corrector)
-          class_node = def_node.each_ancestor(:class, :module).first
+          class_node = def_node.each_ancestor(:sclass, :class, :module).first
           return unless class_node
           return if prepend_memo_wise_present?(class_node)
 

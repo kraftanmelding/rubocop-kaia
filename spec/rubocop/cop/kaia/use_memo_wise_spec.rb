@@ -465,4 +465,173 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
     end
   end
+
+  context 'when using class method memoization with def self' do
+    it 'registers an offense for def self.method with ||= but does not auto-correct' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def self.method
+          ^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_no_corrections
+    end
+
+    it 'registers an offense for def self.method with defined? but does not auto-correct' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def self.method
+          ^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            return @result if defined?(@result)
+            @result = expensive_call
+          end
+        end
+      RUBY
+
+      expect_no_corrections
+    end
+
+    it 'registers an offense for def self.method with arguments' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def self.method(arg)
+          ^^^^^^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call(arg)
+          end
+        end
+      RUBY
+
+      expect_no_corrections
+    end
+
+    it 'does not register an offense for def self.method without memoization' do
+      expect_no_offenses(<<~RUBY)
+        class MyClass
+          def self.method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+  end
+
+  context 'when using class method memoization with class << self' do
+    it 'registers an offense and corrects ||= inside class << self' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          class << self
+            def method
+            ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+              @result ||= expensive_call
+            end
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          class << self
+            prepend MemoWise
+
+            memo_wise def method
+              expensive_call
+            end
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects defined? pattern inside class << self' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          class << self
+            def method
+            ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+              return @result if defined?(@result)
+              @result = expensive_call
+            end
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          class << self
+            prepend MemoWise
+
+            memo_wise def method
+              expensive_call
+            end
+          end
+        end
+      RUBY
+    end
+
+    it 'does not duplicate prepend MemoWise inside class << self' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          class << self
+            prepend MemoWise
+
+            def method
+            ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+              @result ||= expensive_call
+            end
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          class << self
+            prepend MemoWise
+
+            memo_wise def method
+              expensive_call
+            end
+          end
+        end
+      RUBY
+    end
+
+    it 'does not register an offense for class << self without memoization' do
+      expect_no_offenses(<<~RUBY)
+        class MyClass
+          class << self
+            def method
+              expensive_call
+            end
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects ||= with arguments inside class << self' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          class << self
+            def method(arg)
+            ^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+              @result ||= expensive_call(arg)
+            end
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          class << self
+            prepend MemoWise
+
+            memo_wise def method(arg)
+              expensive_call(arg)
+            end
+          end
+        end
+      RUBY
+    end
+  end
 end
