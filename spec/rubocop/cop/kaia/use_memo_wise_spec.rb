@@ -63,6 +63,75 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         end
       RUBY
     end
+
+    it 'registers an offense and corrects ||= memoization with begin ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @result ||= begin
+            do_something
+            expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          begin
+            do_something
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects ||= memoization with case ... when ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @result ||= case status
+          when :active then do_active
+          when :inactive then do_inactive
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          case status
+          when :active then do_active
+          when :inactive then do_inactive
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects ||= memoization with if ... elsif ... else ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @result ||= if condition_a
+            do_a
+          elsif condition_b
+            do_b
+          else
+            do_c
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          if condition_a
+            do_a
+          elsif condition_b
+            do_b
+          else
+            do_c
+          end
+        end
+      RUBY
+    end
   end
 
   context 'when using defined? memoization pattern' do
@@ -110,6 +179,78 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       expect_correction(<<~RUBY)
         memo_wise def method(arg)
           expensive_call(arg)
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects defined? pattern with begin ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          return @result if defined?(@result)
+          @result = begin
+            do_something
+            expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          begin
+            do_something
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects defined? pattern with case ... when ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          return @result if defined?(@result)
+          @result = case status
+          when :active then do_active
+          when :inactive then do_inactive
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          case status
+          when :active then do_active
+          when :inactive then do_inactive
+          end
+        end
+      RUBY
+    end
+
+    it 'registers an offense and corrects defined? pattern with if ... elsif ... else ... end block' do
+      expect_offense(<<~RUBY)
+        def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          return @result if defined?(@result)
+          @result = if condition_a
+            do_a
+          elsif condition_b
+            do_b
+          else
+            do_c
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          if condition_a
+            do_a
+          elsif condition_b
+            do_b
+          else
+            do_c
+          end
         end
       RUBY
     end
