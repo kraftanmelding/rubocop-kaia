@@ -166,12 +166,20 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
     end
 
-    it 'does not register an offense for a method with more than two statements' do
-      expect_no_offenses(<<~RUBY)
+    it 'registers an offense and corrects a method with more than two statements' do
+      expect_offense(<<~RUBY)
         def method
+        ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           return @result if defined?(@result)
           setup_something
           @result = expensive_call
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          setup_something
+          expensive_call
         end
       RUBY
     end

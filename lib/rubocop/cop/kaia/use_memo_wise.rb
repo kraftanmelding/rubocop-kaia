@@ -50,19 +50,23 @@ module RuboCop
           end
         end
 
-        # Pattern: def method; return @ivar if defined?(@ivar); @ivar = expr; end
+        # Pattern: def method; return @ivar if defined?(@ivar); ...; @ivar = expr; end
         def defined_memoization?(node)
           body = node.body
           return false unless body&.begin_type?
-          return false unless body.children.size == 2
+          return false unless body.children.size >= 2
 
-          guard, assignment = body.children
+          guard = body.children.first
+          assignment = body.children.last
           return false unless defined_guard?(guard) && assignment.ivasgn_type?
           return false unless matching_ivars?(guard, assignment)
 
           add_offense(node) do |corrector|
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
-            corrector.replace(body, assignment.children[1].source)
+            indent = ' ' * body.loc.column
+            middle = body.children[1...-1].map(&:source)
+            replacement = (middle + [assignment.children[1].source]).join("\n#{indent}")
+            corrector.replace(body, replacement)
           end
         end
 
