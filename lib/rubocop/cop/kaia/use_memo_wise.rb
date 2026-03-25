@@ -41,6 +41,8 @@ module RuboCop
 
           defined_memoization?(node)
         end
+        # Handle `def self.method` the same way; `register_offense` skips
+        # auto-correction for `defs` nodes since MemoWise requires `class << self`.
         alias on_defs on_def
 
         private
