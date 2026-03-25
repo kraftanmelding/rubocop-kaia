@@ -98,6 +98,30 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceNoAddedPublicMethods, :config do
     RUBY
   end
 
+  it 'does not register an offense for memo_wise method under private block in a Service class' do
+    expect_no_offenses(<<~RUBY)
+      class MyService
+        def call
+        end
+
+        private
+
+        memo_wise def helper_method
+        end
+      end
+    RUBY
+  end
+
+  it 'registers an offense for public memo_wise method in a Service class' do
+    expect_offense(<<~RUBY)
+      class MyService
+        memo_wise def perform
+                  ^^^^^^^^^^^ Kaia/ServiceNoAddedPublicMethods: Only `call` and `initialize` methods can be public in a Service class.
+        end
+      end
+    RUBY
+  end
+
   it 'does not register an offense for public methods in a nested class within a Service' do
     expect_no_offenses(<<~RUBY)
       class MyService
