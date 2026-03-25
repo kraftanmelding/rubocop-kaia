@@ -4,45 +4,69 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
   let(:config) { RuboCop::Config.new }
 
   context 'when using ||= memoization pattern' do
-    it 'registers an offense for simple ||= memoization' do
+    it 'registers an offense and corrects simple ||= memoization' do
       expect_offense(<<~RUBY)
         def method
         ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           @result ||= expensive_call
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          expensive_call
+        end
+      RUBY
     end
 
-    it 'registers an offense for ||= memoization with complex expression' do
+    it 'registers an offense and corrects ||= memoization with complex expression' do
       expect_offense(<<~RUBY)
         def method
         ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           @result ||= SomeClass.new(arg1, arg2).process
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          SomeClass.new(arg1, arg2).process
+        end
+      RUBY
     end
 
-    it 'registers an offense for ||= memoization with a block' do
+    it 'registers an offense and corrects ||= memoization with a block' do
       expect_offense(<<~RUBY)
         def method
         ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           @result ||= items.map { |item| item.name }
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          items.map { |item| item.name }
+        end
+      RUBY
     end
 
-    it 'registers an offense for ||= memoization with arguments' do
+    it 'registers an offense and corrects ||= memoization with arguments' do
       expect_offense(<<~RUBY)
         def method(arg)
         ^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           @result ||= expensive_call(arg)
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method(arg)
+          expensive_call(arg)
+        end
+      RUBY
     end
   end
 
   context 'when using defined? memoization pattern' do
-    it 'registers an offense for defined? guard with ivar assignment' do
+    it 'registers an offense and corrects defined? guard with ivar assignment' do
       expect_offense(<<~RUBY)
         def method
         ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
@@ -50,9 +74,15 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           @result = expensive_call
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          expensive_call
+        end
+      RUBY
     end
 
-    it 'registers an offense for defined? pattern with complex expression' do
+    it 'registers an offense and corrects defined? pattern with complex expression' do
       expect_offense(<<~RUBY)
         def method
         ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
@@ -60,14 +90,26 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           @data = SomeClass.new.fetch
         end
       RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method
+          SomeClass.new.fetch
+        end
+      RUBY
     end
 
-    it 'registers an offense for defined? pattern with arguments' do
+    it 'registers an offense and corrects defined? pattern with arguments' do
       expect_offense(<<~RUBY)
         def method(arg)
         ^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
           return @result if defined?(@result)
           @result = expensive_call(arg)
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def method(arg)
+          expensive_call(arg)
         end
       RUBY
     end

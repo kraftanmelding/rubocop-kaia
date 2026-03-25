@@ -22,6 +22,8 @@ module RuboCop
       #     expensive_call
       #   end
       class UseMemoWise < Base
+        extend AutoCorrector
+
         MSG = 'Use `memo_wise` instead of manually memoizing with instance variables.'
 
         # @!method or_asgn_ivar?(node)
@@ -42,7 +44,10 @@ module RuboCop
           body = node.body
           return false unless body && or_asgn_ivar?(body)
 
-          add_offense(node)
+          add_offense(node) do |corrector|
+            corrector.insert_before(node.loc.keyword, 'memo_wise ')
+            corrector.replace(body, body.children[1].source)
+          end
         end
 
         # Pattern: def method; return @ivar if defined?(@ivar); @ivar = expr; end
@@ -55,7 +60,10 @@ module RuboCop
           return false unless defined_guard?(guard) && assignment.ivasgn_type?
           return false unless matching_ivars?(guard, assignment)
 
-          add_offense(node)
+          add_offense(node) do |corrector|
+            corrector.insert_before(node.loc.keyword, 'memo_wise ')
+            corrector.replace(body, assignment.children[1].source)
+          end
         end
 
         def defined_guard?(node)
