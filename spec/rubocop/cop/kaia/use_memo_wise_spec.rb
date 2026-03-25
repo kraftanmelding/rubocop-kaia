@@ -77,10 +77,8 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
       expect_correction(<<~RUBY)
         memo_wise def method
-          begin
-            do_something
-            expensive_call
-          end
+          do_something
+          expensive_call
         end
       RUBY
     end
@@ -197,10 +195,8 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
       expect_correction(<<~RUBY)
         memo_wise def method
-          begin
-            do_something
-            expensive_call
-          end
+          do_something
+          expensive_call
         end
       RUBY
     end

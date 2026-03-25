@@ -46,7 +46,7 @@ module RuboCop
 
           add_offense(node) do |corrector|
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
-            corrector.replace(body, body.children[1].source)
+            corrector.replace(body, unwrap_begin_source(body.children[1], body.loc.column))
           end
         end
 
@@ -65,7 +65,8 @@ module RuboCop
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
             indent = ' ' * body.loc.column
             middle = body.children[1...-1].map(&:source)
-            replacement = (middle + [assignment.children[1].source]).join("\n#{indent}")
+            rhs = assignment.children[1]
+            replacement = (middle + [unwrap_begin_source(rhs, body.loc.column)]).join("\n#{indent}")
             corrector.replace(body, replacement)
           end
         end
@@ -90,6 +91,15 @@ module RuboCop
           assign_ivar = assignment.children[0]
 
           guard_ivar == return_ivar && guard_ivar == assign_ivar
+        end
+
+        def unwrap_begin_source(node, indent_width)
+          if node.kwbegin_type?
+            indent = ' ' * indent_width
+            node.children.map(&:source).join("\n#{indent}")
+          else
+            node.source
+          end
         end
       end
     end
