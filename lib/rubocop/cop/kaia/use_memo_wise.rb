@@ -136,9 +136,9 @@ module RuboCop
           target = included_block || class_node
 
           return if prepend_memo_wise_present?(target)
-          return if @prepend_inserted_for.include?(target)
+          return if @prepend_inserted_for.include?(class_node)
 
-          @prepend_inserted_for.add(target)
+          @prepend_inserted_for.add(class_node)
 
           if included_block
             insert_into_included_block(included_block, corrector)
