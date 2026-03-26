@@ -129,34 +129,34 @@ module RuboCop
         end
 
         def add_prepend_memo_wise(def_node, corrector)
-          class_node = def_node.each_ancestor(:sclass, :class, :module).first
-          return unless class_node
-
-          included_block = find_included_block(class_node)
-          target = included_block || class_node
-
-          return if prepend_memo_wise_present?(target)
-          return if @prepend_inserted_for.include?(class_node)
-
-          @prepend_inserted_for.add(class_node)
+          included_block = find_enclosing_included_block(def_node)
 
           if included_block
+            return if prepend_memo_wise_present?(included_block)
+            return if @prepend_inserted_for.include?(included_block)
+
+            @prepend_inserted_for.add(included_block)
             insert_into_included_block(included_block, corrector)
           else
+            class_node = def_node.each_ancestor(:sclass, :class, :module).first
+            return unless class_node
+            return if prepend_memo_wise_present?(class_node)
+            return if @prepend_inserted_for.include?(class_node)
+
+            @prepend_inserted_for.add(class_node)
+
             body = class_node.body
             indent = ' ' * body.loc.column
             corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
           end
         end
 
-        def find_included_block(class_node)
-          return unless class_node.module_type?
-
-          body = class_node.body
-          return unless body
-
-          children = body.begin_type? ? body.children : [body]
-          children.find { |child| child.block_type? && child.method_name == :included }
+        def find_enclosing_included_block(def_node)
+          def_node.each_ancestor do |ancestor|
+            return nil if ancestor.class_type? || ancestor.module_type? || ancestor.sclass_type?
+            return ancestor if ancestor.block_type? && ancestor.method_name == :included
+          end
+          nil
         end
 
         def insert_into_included_block(included_block, corrector)
