@@ -440,6 +440,36 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
     end
 
+    it 'adds prepend MemoWise only once when correcting multiple methods in the same class' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def method_a
+          ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @a ||= expensive_call_a
+          end
+
+          def method_b
+          ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @b ||= expensive_call_b
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          memo_wise def method_a
+            expensive_call_a
+          end
+
+          memo_wise def method_b
+            expensive_call_b
+          end
+        end
+      RUBY
+    end
+
     it 'adds prepend MemoWise to the innermost class in nested classes' do
       expect_offense(<<~RUBY)
         module Outer

@@ -128,6 +128,11 @@ module RuboCop
           return unless class_node
           return if prepend_memo_wise_present?(class_node)
 
+          @prepend_inserted_for ||= Set.new
+          return if @prepend_inserted_for.include?(class_node)
+
+          @prepend_inserted_for.add(class_node)
+
           body = class_node.body
           indent = ' ' * body.loc.column
           corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
