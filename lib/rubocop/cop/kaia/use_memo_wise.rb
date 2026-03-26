@@ -46,8 +46,6 @@ module RuboCop
 
           defined_memoization?(node)
         end
-        # Handle `def self.method` the same way; `register_offense` skips
-        # auto-correction for `defs` nodes since MemoWise requires `class << self`.
         alias on_defs on_def
 
         private
@@ -57,9 +55,9 @@ module RuboCop
           body = node.body
           return false unless body && or_asgn_ivar?(body)
 
-          register_offense(node) do |corrector|
-            corrector.insert_before(node.loc.keyword, 'memo_wise ')
+          add_offense(node) do |corrector|
             corrector.replace(body, unwrap_begin_source(body.children[1], body.loc.column))
+            apply_memo_wise(node, corrector)
             add_prepend_memo_wise(node, corrector)
           end
         end
@@ -75,25 +73,26 @@ module RuboCop
           return false unless defined_guard?(guard) && assignment.ivasgn_type?
           return false unless matching_ivars?(guard, assignment)
 
-          register_offense(node) do |corrector|
-            corrector.insert_before(node.loc.keyword, 'memo_wise ')
+          add_offense(node) do |corrector|
             indent = ' ' * body.loc.column
             middle = body.children[1...-1].map(&:source)
             rhs = assignment.children[1]
             replacement = (middle + [unwrap_begin_source(rhs, body.loc.column)]).join("\n#{indent}")
             corrector.replace(body, replacement)
+            apply_memo_wise(node, corrector)
             add_prepend_memo_wise(node, corrector)
           end
         end
 
-        # For `def self.method` (defs nodes), auto-correction is not possible
-        # because `memo_wise def self.method` is not valid MemoWise syntax.
-        # Class methods must be memoized inside a `class << self` block.
-        def register_offense(node, &block)
+        # For `def self.method` (defs nodes), use `memo_wise self: :method`
+        # after the method definition. For regular `def` nodes, prepend
+        # `memo_wise` before the `def` keyword.
+        def apply_memo_wise(node, corrector)
           if node.defs_type?
-            add_offense(node)
+            indent = ' ' * node.loc.keyword.column
+            corrector.insert_after(node, "\n#{indent}memo_wise self: :#{node.method_name}")
           else
-            add_offense(node, &block)
+            corrector.insert_before(node.loc.keyword, 'memo_wise ')
           end
         end
 

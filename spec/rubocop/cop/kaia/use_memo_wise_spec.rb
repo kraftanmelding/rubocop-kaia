@@ -831,7 +831,7 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
   end
 
   context 'when using class method memoization with def self' do
-    it 'registers an offense for def self.method with ||= but does not auto-correct' do
+    it 'registers an offense and corrects def self.method with ||=' do
       expect_offense(<<~RUBY)
         class MyClass
           def self.method
@@ -841,10 +841,19 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         end
       RUBY
 
-      expect_no_corrections
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          def self.method
+            expensive_call
+          end
+          memo_wise self: :method
+        end
+      RUBY
     end
 
-    it 'registers an offense for def self.method with defined? but does not auto-correct' do
+    it 'registers an offense and corrects def self.method with defined?' do
       expect_offense(<<~RUBY)
         class MyClass
           def self.method
@@ -855,10 +864,19 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         end
       RUBY
 
-      expect_no_corrections
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          def self.method
+            expensive_call
+          end
+          memo_wise self: :method
+        end
+      RUBY
     end
 
-    it 'registers an offense for def self.method with arguments' do
+    it 'registers an offense and corrects def self.method with arguments' do
       expect_offense(<<~RUBY)
         class MyClass
           def self.method(arg)
@@ -868,7 +886,16 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         end
       RUBY
 
-      expect_no_corrections
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          def self.method(arg)
+            expensive_call(arg)
+          end
+          memo_wise self: :method
+        end
+      RUBY
     end
 
     it 'does not register an offense for def self.method without memoization' do
