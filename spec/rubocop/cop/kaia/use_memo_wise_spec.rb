@@ -13,10 +13,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -29,10 +28,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           SomeClass.new(arg1, arg2).process
         end
-        memo_wise :method
       RUBY
     end
 
@@ -45,10 +43,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           items.map { |item| item.name }
         end
-        memo_wise :method
       RUBY
     end
 
@@ -61,10 +58,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method(arg)
+        memo_wise def method(arg)
           expensive_call(arg)
         end
-        memo_wise :method
       RUBY
     end
 
@@ -80,11 +76,10 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           do_something
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -100,13 +95,12 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           case status
           when :active then do_active
           when :inactive then do_inactive
           end
         end
-        memo_wise :method
       RUBY
     end
 
@@ -125,7 +119,7 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           if condition_a
             do_a
           elsif condition_b
@@ -134,7 +128,6 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
             do_c
           end
         end
-        memo_wise :method
       RUBY
     end
   end
@@ -150,10 +143,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -167,10 +159,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           SomeClass.new.fetch
         end
-        memo_wise :method
       RUBY
     end
 
@@ -184,10 +175,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method(arg)
+        memo_wise def method(arg)
           expensive_call(arg)
         end
-        memo_wise :method
       RUBY
     end
 
@@ -204,11 +194,10 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           do_something
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -225,13 +214,12 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           case status
           when :active then do_active
           when :inactive then do_inactive
           end
         end
-        memo_wise :method
       RUBY
     end
 
@@ -251,7 +239,7 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           if condition_a
             do_a
           elsif condition_b
@@ -260,7 +248,6 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
             do_c
           end
         end
-        memo_wise :method
       RUBY
     end
   end
@@ -276,10 +263,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
     it 'does not register an offense for a method using memo_wise' do
       expect_no_offenses(<<~RUBY)
-        def method
+        memo_wise def method
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -328,11 +314,10 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
       RUBY
 
       expect_correction(<<~RUBY)
-        def method
+        memo_wise def method
           setup_something
           expensive_call
         end
-        memo_wise :method
       RUBY
     end
 
@@ -361,10 +346,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         class MyClass
           prepend MemoWise
 
-          def method
+          memo_wise def method
             expensive_call
           end
-          memo_wise :method
         end
       RUBY
     end
@@ -384,10 +368,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         class MyClass
           prepend MemoWise
 
-          def method
+          memo_wise def method
             expensive_call
           end
-          memo_wise :method
         end
       RUBY
     end
@@ -406,10 +389,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         module MyModule
           prepend MemoWise
 
-          def method
+          memo_wise def method
             expensive_call
           end
-          memo_wise :method
         end
       RUBY
     end
@@ -428,10 +410,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         class MyClass < BaseClass
           prepend MemoWise
 
-          def method
+          memo_wise def method
             expensive_call
           end
-          memo_wise :method
         end
       RUBY
     end
@@ -452,10 +433,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         class MyClass
           prepend MemoWise
 
-          def method
+          memo_wise def method
             expensive_call
           end
-          memo_wise :method
         end
       RUBY
     end
@@ -479,15 +459,13 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
         class MyClass
           prepend MemoWise
 
-          def method_a
+          memo_wise def method_a
             expensive_call_a
           end
-          memo_wise :method_a
 
-          def method_b
+          memo_wise def method_b
             expensive_call_b
           end
-          memo_wise :method_b
         end
       RUBY
     end
@@ -509,10 +487,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           class Inner
             prepend MemoWise
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         end
       RUBY
@@ -547,10 +524,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
               some_setup
             end
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         RUBY
       end
@@ -582,10 +558,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
               some_setup
             end
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         RUBY
       end
@@ -616,10 +591,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
               some_setup
             end
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         RUBY
       end
@@ -655,15 +629,13 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
               some_setup
             end
 
-            def method_a
+            memo_wise def method_a
               expensive_call_a
             end
-            memo_wise :method_a
 
-            def method_b
+            memo_wise def method_b
               expensive_call_b
             end
-            memo_wise :method_b
           end
         RUBY
       end
@@ -695,10 +667,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
               some_setup
 
-              def method
+              memo_wise def method
                 expensive_call
               end
-              memo_wise :method
             end
           end
         RUBY
@@ -730,10 +701,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
               some_setup
 
-              def method
+              memo_wise def method
                 expensive_call
               end
-              memo_wise :method
             end
           end
         RUBY
@@ -762,10 +732,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
             included do
               prepend MemoWise
 
-              def method
+              memo_wise def method
                 expensive_call
               end
-              memo_wise :method
             end
           end
         RUBY
@@ -801,15 +770,13 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
               some_setup
 
-              def method_a
+              memo_wise def method_a
                 expensive_call_a
               end
-              memo_wise :method_a
 
-              def method_b
+              memo_wise def method_b
                 expensive_call_b
               end
-              memo_wise :method_b
             end
           end
         RUBY
@@ -849,16 +816,14 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
 
               some_setup
 
-              def included_method
+              memo_wise def included_method
                 expensive_call_a
               end
-              memo_wise :included_method
             end
 
-            def module_method
+            memo_wise def module_method
               expensive_call_b
             end
-            memo_wise :module_method
           end
         RUBY
       end
@@ -962,10 +927,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           class << self
             prepend MemoWise
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         end
       RUBY
@@ -989,10 +953,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           class << self
             prepend MemoWise
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         end
       RUBY
@@ -1017,10 +980,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           class << self
             prepend MemoWise
 
-            def method
+            memo_wise def method
               expensive_call
             end
-            memo_wise :method
           end
         end
       RUBY
@@ -1055,10 +1017,9 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
           class << self
             prepend MemoWise
 
-            def method(arg)
+            memo_wise def method(arg)
               expensive_call(arg)
             end
-            memo_wise :method
           end
         end
       RUBY

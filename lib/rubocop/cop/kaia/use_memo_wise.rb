@@ -18,10 +18,9 @@ module RuboCop
       #   end
       #
       #   # good
-      #   def method
+      #   memo_wise def method
       #     expensive_call
       #   end
-      #   memo_wise :method
       class UseMemoWise < Base
         extend AutoCorrector
 
@@ -85,12 +84,16 @@ module RuboCop
           end
         end
 
-        # Adds `memo_wise :method` (or `memo_wise self: :method` for class
-        # methods) after the method definition.
+        # For `def self.method` (defs nodes), use `memo_wise self: :method`
+        # after the method definition. For regular `def` nodes, prepend
+        # `memo_wise` before the `def` keyword.
         def apply_memo_wise(node, corrector)
-          indent = ' ' * node.loc.keyword.column
-          target = node.defs_type? ? "self: :#{node.method_name}" : ":#{node.method_name}"
-          corrector.insert_after(node, "\n#{indent}memo_wise #{target}")
+          if node.defs_type?
+            indent = ' ' * node.loc.keyword.column
+            corrector.insert_after(node, "\n#{indent}memo_wise self: :#{node.method_name}")
+          else
+            corrector.insert_before(node.loc.keyword, 'memo_wise ')
+          end
         end
 
         def defined_guard?(node)
