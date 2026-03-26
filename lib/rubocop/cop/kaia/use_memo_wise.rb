@@ -131,19 +131,47 @@ module RuboCop
         def add_prepend_memo_wise(def_node, corrector)
           class_node = def_node.each_ancestor(:sclass, :class, :module).first
           return unless class_node
-          return if prepend_memo_wise_present?(class_node)
 
-          return if @prepend_inserted_for.include?(class_node)
+          included_block = find_included_block(class_node)
+          target = included_block || class_node
 
-          @prepend_inserted_for.add(class_node)
+          return if prepend_memo_wise_present?(target)
+          return if @prepend_inserted_for.include?(target)
 
-          body = class_node.body
-          indent = ' ' * body.loc.column
-          corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
+          @prepend_inserted_for.add(target)
+
+          if included_block
+            insert_into_included_block(included_block, corrector)
+          else
+            body = class_node.body
+            indent = ' ' * body.loc.column
+            corrector.insert_before(body, "prepend MemoWise\n\n#{indent}")
+          end
         end
 
-        def prepend_memo_wise_present?(class_node)
+        def find_included_block(class_node)
+          return unless class_node.module_type?
+
           body = class_node.body
+          return unless body
+
+          children = body.begin_type? ? body.children : [body]
+          children.find { |child| child.block_type? && child.method_name == :included }
+        end
+
+        def insert_into_included_block(included_block, corrector)
+          block_body = included_block.body
+          if block_body
+            indent = ' ' * block_body.loc.column
+            corrector.insert_before(block_body, "prepend MemoWise\n\n#{indent}")
+          else
+            indent = ' ' * (included_block.loc.column + 2)
+            corrector.insert_after(included_block.loc.begin, "\n#{indent}prepend MemoWise")
+          end
+        end
+
+        def prepend_memo_wise_present?(node)
+          body = node.body
           return false unless body
 
           if body.begin_type?

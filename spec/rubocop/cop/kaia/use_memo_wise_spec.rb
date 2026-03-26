@@ -496,6 +496,148 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
     end
   end
 
+  context 'when inside a concern module with included block' do
+    it 'adds prepend MemoWise inside the included block' do
+      expect_offense(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            some_setup
+          end
+
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            prepend MemoWise
+
+            some_setup
+          end
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise inside the included block for defined? pattern' do
+      expect_offense(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            some_setup
+          end
+
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            return @result if defined?(@result)
+            @result = expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            prepend MemoWise
+
+            some_setup
+          end
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'does not duplicate prepend MemoWise if already inside included block' do
+      expect_offense(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            prepend MemoWise
+          end
+
+          def method
+          ^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @result ||= expensive_call
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            prepend MemoWise
+          end
+
+          memo_wise def method
+            expensive_call
+          end
+        end
+      RUBY
+    end
+
+    it 'adds prepend MemoWise only once for multiple methods in a concern' do
+      expect_offense(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            some_setup
+          end
+
+          def method_a
+          ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @a ||= expensive_call_a
+          end
+
+          def method_b
+          ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @b ||= expensive_call_b
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        module MyConcern
+          extend ActiveSupport::Concern
+
+          included do
+            prepend MemoWise
+
+            some_setup
+          end
+
+          memo_wise def method_a
+            expensive_call_a
+          end
+
+          memo_wise def method_b
+            expensive_call_b
+          end
+        end
+      RUBY
+    end
+  end
+
   context 'when using class method memoization with def self' do
     it 'registers an offense for def self.method with ||= but does not auto-correct' do
       expect_offense(<<~RUBY)
