@@ -85,16 +85,12 @@ module RuboCop
           end
         end
 
-        # For `def self.method` (defs nodes), use `memo_wise self: :method`
-        # after the method definition. For regular `def` nodes, use
-        # `memo_wise :method` after the method definition.
+        # Adds `memo_wise :method` (or `memo_wise self: :method` for class
+        # methods) after the method definition.
         def apply_memo_wise(node, corrector)
           indent = ' ' * node.loc.keyword.column
-          if node.defs_type?
-            corrector.insert_after(node, "\n#{indent}memo_wise self: :#{node.method_name}")
-          else
-            corrector.insert_after(node, "\n#{indent}memo_wise :#{node.method_name}")
-          end
+          target = node.defs_type? ? "self: :#{node.method_name}" : ":#{node.method_name}"
+          corrector.insert_after(node, "\n#{indent}memo_wise #{target}")
         end
 
         def defined_guard?(node)
