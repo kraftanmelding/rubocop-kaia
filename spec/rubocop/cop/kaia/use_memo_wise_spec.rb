@@ -252,6 +252,123 @@ RSpec.describe RuboCop::Cop::Kaia::UseMemoWise, :config do
     end
   end
 
+  context 'when corrected body is a delegate candidate' do
+    it 'uses suffix form for ||= with receiver.method_name matching def name' do
+      expect_offense(<<~RUBY)
+        def merged_forecast
+        ^^^^^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @merged_forecast ||= time_series.merged_forecast
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def merged_forecast
+          time_series.merged_forecast
+        end
+        memo_wise :merged_forecast
+      RUBY
+    end
+
+    it 'uses suffix form for defined? pattern with receiver.method_name matching def name' do
+      expect_offense(<<~RUBY)
+        def merged_forecast
+        ^^^^^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          return @merged_forecast if defined?(@merged_forecast)
+          @merged_forecast = time_series.merged_forecast
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def merged_forecast
+          time_series.merged_forecast
+        end
+        memo_wise :merged_forecast
+      RUBY
+    end
+
+    it 'uses suffix form inside a class for delegate candidate' do
+      expect_offense(<<~RUBY)
+        class MyClass
+          def merged_forecast
+          ^^^^^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+            @merged_forecast ||= time_series.merged_forecast
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class MyClass
+          prepend MemoWise
+
+          def merged_forecast
+            time_series.merged_forecast
+          end
+          memo_wise :merged_forecast
+        end
+      RUBY
+    end
+
+    it 'uses prefix form when method name differs from receiver call' do
+      expect_offense(<<~RUBY)
+        def forecast
+        ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @forecast ||= time_series.merged_forecast
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def forecast
+          time_series.merged_forecast
+        end
+      RUBY
+    end
+
+    it 'uses prefix form when RHS has arguments' do
+      expect_offense(<<~RUBY)
+        def forecast
+        ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @forecast ||= time_series.forecast(arg)
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def forecast
+          time_series.forecast(arg)
+        end
+      RUBY
+    end
+
+    it 'uses prefix form when def has arguments' do
+      expect_offense(<<~RUBY)
+        def forecast(date)
+        ^^^^^^^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @forecast ||= time_series.forecast
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def forecast(date)
+          time_series.forecast
+        end
+      RUBY
+    end
+
+    it 'uses prefix form when RHS has no receiver' do
+      expect_offense(<<~RUBY)
+        def forecast
+        ^^^^^^^^^^^^ Kaia/UseMemoWise: Use `memo_wise` instead of manually memoizing with instance variables.
+          @forecast ||= forecast
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        memo_wise def forecast
+          forecast
+        end
+      RUBY
+    end
+  end
+
   context 'when not using memoization patterns' do
     it 'does not register an offense for a regular method' do
       expect_no_offenses(<<~RUBY)

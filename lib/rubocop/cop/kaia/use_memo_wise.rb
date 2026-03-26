@@ -84,15 +84,57 @@ module RuboCop
           end
         end
 
-        # For `def self.method` (defs nodes), use `memo_wise self: :method`
-        # after the method definition. For regular `def` nodes, prepend
-        # `memo_wise` before the `def` keyword.
+        # For `def self.method` (defs nodes) or delegate candidates, use
+        # `memo_wise :method` / `memo_wise self: :method` after the method
+        # definition. For all other regular `def` nodes, prepend `memo_wise`
+        # before the `def` keyword.
+        #
+        # A delegate candidate is a no-arg method whose corrected body is a
+        # single `receiver.method_name` call (same name as the def) with no
+        # arguments.  Using the prefix form for these would break when
+        # another cop (e.g. Rails/Delegate) rewrites the body into
+        # `delegate :method, to: :receiver`.
         def apply_memo_wise(node, corrector)
-          if node.defs_type?
+          if node.defs_type? || delegate_candidate?(node)
             indent = ' ' * node.loc.keyword.column
-            corrector.insert_after(node, "\n#{indent}memo_wise self: :#{node.method_name}")
+            target = node.defs_type? ? "self: :#{node.method_name}" : ":#{node.method_name}"
+            corrector.insert_after(node, "\n#{indent}memo_wise #{target}")
           else
             corrector.insert_before(node.loc.keyword, 'memo_wise ')
+          end
+        end
+
+        # Returns true when the method body (after memoization is stripped)
+        # is a single `receiver.method_name` send matching the def name,
+        # with no arguments — the exact shape Rails/Delegate would rewrite.
+        def delegate_candidate?(node)
+          return false unless node.def_type? && node.arguments.empty?
+
+          rhs = effective_rhs(node)
+          return false unless rhs&.send_type?
+          return false unless rhs.method_name == node.method_name
+          return false unless rhs.arguments.empty?
+          return false if rhs.receiver.nil?
+
+          true
+        end
+
+        # Extracts the expression that will become the method body after
+        # the memoization wrapper is removed.
+        def effective_rhs(node)
+          body = node.body
+          return unless body
+
+          if or_asgn_ivar?(body)
+            # @ivar ||= expr  →  expr
+            body.children[1]
+          elsif body.begin_type? && body.children.size >= 2
+            guard = body.children.first
+            assignment = body.children.last
+            if defined_guard?(guard) && assignment.ivasgn_type? && matching_ivars?(guard, assignment)
+              # return @ivar if defined?(@ivar); ...; @ivar = expr  →  expr
+              assignment.children[1]
+            end
           end
         end
 
