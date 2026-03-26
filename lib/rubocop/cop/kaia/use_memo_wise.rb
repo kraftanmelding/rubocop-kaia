@@ -36,6 +36,11 @@ module RuboCop
           (send nil? :prepend (const nil? :MemoWise))
         PATTERN
 
+        def on_new_investigation
+          super
+          @prepend_inserted_for = Set.new
+        end
+
         def on_def(node)
           return if or_asgn_memoization?(node)
 
@@ -128,7 +133,6 @@ module RuboCop
           return unless class_node
           return if prepend_memo_wise_present?(class_node)
 
-          @prepend_inserted_for ||= Set.new
           return if @prepend_inserted_for.include?(class_node)
 
           @prepend_inserted_for.add(class_node)
