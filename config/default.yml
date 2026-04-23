@@ -27,3 +27,8 @@ Kaia/ServiceSuffix:
   Enabled: true
   Description: 'Service classes should have a "Service" suffix.'
   SafeAutoCorrect: false
+
+Kaia/UseMemoWise:
+  Enabled: true
+  Description: 'Use `memo_wise` instead of manually memoizing with instance variables.'
+  SafeAutoCorrect: true
