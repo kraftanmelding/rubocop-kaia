@@ -66,4 +66,45 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceFileSuffix, :config do
       end
     RUBY
   end
+
+  it 'does not register an offense for a non-service-shaped class in app/services' do
+    expect_no_offenses(<<~RUBY, 'app/services/statistics/yearly_data.rb')
+      class Statistics::YearlyData
+        def initialize(power_plant)
+          @power_plant = power_plant
+        end
+
+        def volume
+          @power_plant.volume
+        end
+      end
+    RUBY
+  end
+
+  it 'registers an offense for a class with a call entry point but no Service suffix' do
+    expect_offense(<<~RUBY, 'app/services/payment_processor.rb')
+      class PaymentProcessor
+            ^^^^^^^^^^^^^^^^ Kaia/ServiceFileSuffix: Classes defined in app/services must have a "Service" suffix.
+        def call
+          :done
+        end
+      end
+    RUBY
+  end
+
+  it 'does not treat a call defined in a nested class as the outer class entry point' do
+    expect_no_offenses(<<~RUBY, 'app/services/notification_core/dispatcher.rb')
+      class NotificationCore::Dispatcher
+        def dispatch(event)
+          event
+        end
+
+        class Worker
+          def call
+            :done
+          end
+        end
+      end
+    RUBY
+  end
 end

@@ -12,6 +12,8 @@ Guidelines for AI agents working in this repository.
 lib/
   rubocop-kaia.rb                        # Entry point — requires all cops
   rubocop/cop/kaia/
+    mixin/
+      service_shape.rb                   # Shared "service-shaped class" predicate
     service_entry_point.rb               # Kaia/ServiceEntryPoint cop
     service_file_inheritance.rb          # Kaia/ServiceFileInheritance cop
     service_file_suffix.rb               # Kaia/ServiceFileSuffix cop

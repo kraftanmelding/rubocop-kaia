@@ -58,21 +58,30 @@ end
 
 ### `Kaia/ServiceFileSuffix`
 
-Classes defined under `app/services/` must end with `Service`. Nested classes are exempt.
+Service-shaped classes defined under `app/services/` must end with `Service`. Nested classes are exempt.
+
+A class is "service-shaped" when it ends with `Service`, inherits from a `*Service` parent, or defines a `call`/`self.call` entry point. Other service-layer code that legitimately lives under `app/services/` — query objects, presenters, pollers, calculators — is not flagged.
 
 ```ruby
-# bad — in app/services/payment_processor.rb
+# bad — in app/services/payment_processor.rb (has a call entry point but no Service suffix)
 class PaymentProcessor
+  def call; end
 end
 
 # good — in app/services/payment_processing_service.rb
 class PaymentProcessingService
+  def call; end
+end
+
+# ignored — not service-shaped (a query object)
+class MonthlyRevenueQuery
+  def rows; end
 end
 ```
 
 ### `Kaia/ServiceFileInheritance`
 
-Top-level classes defined under `app/services/` must inherit from a `*Service`-suffixed parent class. Nested classes are exempt.
+Service-shaped classes defined under `app/services/` must inherit from a `*Service`-suffixed parent class. Nested classes are exempt. Service-shape is determined the same way as `Kaia/ServiceFileSuffix`, so non-service-layer helpers are not flagged.
 
 ```ruby
 # bad — in app/services/payment_processing_service.rb
@@ -81,6 +90,11 @@ end
 
 # good — in app/services/payment_processing_service.rb
 class PaymentProcessingService < ApplicationService
+end
+
+# ignored — not service-shaped (a query object)
+class MonthlyRevenueQuery
+  def rows; end
 end
 ```
 

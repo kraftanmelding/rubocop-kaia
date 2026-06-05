@@ -67,4 +67,40 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceFileInheritance, :config do
       end
     RUBY
   end
+
+  it 'does not register an offense for a non-service-shaped class in app/services' do
+    expect_no_offenses(<<~RUBY, 'app/services/statistics/yearly_data.rb')
+      class Statistics::YearlyData
+        def initialize(power_plant)
+          @power_plant = power_plant
+        end
+
+        def volume
+          @power_plant.volume
+        end
+      end
+    RUBY
+  end
+
+  it 'still flags a Service-named class that does not inherit a Service parent' do
+    expect_offense(<<~RUBY, 'app/services/max_effect_service.rb')
+      class MaxEffectService
+            ^^^^^^^^^^^^^^^^ Kaia/ServiceFileInheritance: Classes defined in app/services must inherit from a "Service"-suffixed parent class.
+        def call
+          :done
+        end
+      end
+    RUBY
+  end
+
+  it 'registers an offense for a class with a call entry point but no Service parent' do
+    expect_offense(<<~RUBY, 'app/services/payment_processor.rb')
+      class PaymentProcessor
+            ^^^^^^^^^^^^^^^^ Kaia/ServiceFileInheritance: Classes defined in app/services must inherit from a "Service"-suffixed parent class.
+        def call
+          :done
+        end
+      end
+    RUBY
+  end
 end
