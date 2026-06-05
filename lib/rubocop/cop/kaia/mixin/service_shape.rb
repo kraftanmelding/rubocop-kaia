@@ -32,16 +32,34 @@ module RuboCop
           class_node.parent_class&.source&.end_with?('Service')
         end
 
-        # Only direct method definitions count — a `call` defined inside a
-        # nested class must not mark the outer class as service-shaped.
+        # Only definitions belonging to the class itself count — a `call`
+        # defined inside a *nested class* must not mark the outer class as
+        # service-shaped. Both `def self.call` and a `def call` inside a
+        # `class << self` block are recognised as class-level entry points.
         def defines_call_entry_point?(class_node)
-          body = class_node.body
-          return false unless body
+          top_level_nodes(class_node.body).any? { |child| call_definition?(child) }
+        end
 
-          definitions = body.begin_type? ? body.children : [body]
-          definitions.any? do |child|
-            (child.def_type? || child.defs_type?) && child.method_name == :call
+        def call_definition?(node)
+          return false if node.nil?
+          return true if (node.def_type? || node.defs_type?) && node.method_name == :call
+
+          # `class << self; def call; end; end`
+          node.sclass_type? && singleton_defines_call?(node)
+        end
+
+        def singleton_defines_call?(sclass_node)
+          top_level_nodes(sclass_node.children[1]).any? do |child|
+            child&.def_type? && child.method_name == :call
           end
+        end
+
+        # The direct children of a class/sclass body: nil, a single node, or
+        # the children of a `begin` wrapper.
+        def top_level_nodes(body)
+          return [] if body.nil?
+
+          body.begin_type? ? body.children : [body]
         end
 
         def in_services_directory?

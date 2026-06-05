@@ -103,4 +103,17 @@ RSpec.describe RuboCop::Cop::Kaia::ServiceFileInheritance, :config do
       end
     RUBY
   end
+
+  it 'registers an offense for a class with a singleton-class call entry point but no Service parent' do
+    expect_offense(<<~RUBY, 'app/services/payment_processor.rb')
+      class PaymentProcessor
+            ^^^^^^^^^^^^^^^^ Kaia/ServiceFileInheritance: Classes defined in app/services must inherit from a "Service"-suffixed parent class.
+        class << self
+          def call
+            :done
+          end
+        end
+      end
+    RUBY
+  end
 end
