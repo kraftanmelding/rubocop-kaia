@@ -1,5 +1,5 @@
 ---
-name: refactor-service-file-inheritance
+name: rubocop-kaia-refactor-service-file-inheritance
 description: >-
   Refactors code violating the Kaia/ServiceFileInheritance RuboCop cop. This cop enforces that
   top-level classes in app/services/ inherit from a *Service parent class. Use when a service

@@ -49,12 +49,12 @@ RSpec.describe RuboCop::Kaia::SkillsInstaller do
 
     it 'does not overwrite a real directory with the same name' do
       skills_dir = project_dir.join('.claude', 'skills')
-      FileUtils.mkdir_p(skills_dir.join('refactor-all-violations'))
-      (skills_dir.join('refactor-all-violations', 'custom-file.txt')).write('keep me')
+      FileUtils.mkdir_p(skills_dir.join('rubocop-kaia-refactor-all-violations'))
+      (skills_dir.join('rubocop-kaia-refactor-all-violations', 'custom-file.txt')).write('keep me')
 
       described_class.install(project_dir: project_dir)
 
-      real_dir = skills_dir.join('refactor-all-violations')
+      real_dir = skills_dir.join('rubocop-kaia-refactor-all-violations')
       expect(real_dir).not_to be_symlink
       expect(real_dir.join('custom-file.txt').read).to eq('keep me')
     end
@@ -64,13 +64,13 @@ RSpec.describe RuboCop::Kaia::SkillsInstaller do
       FileUtils.mkdir_p(skills_dir)
 
       stale_target = Pathname.new(Dir.mktmpdir)
-      FileUtils.ln_s(stale_target.to_s, skills_dir.join('refactor-all-violations').to_s)
+      FileUtils.ln_s(stale_target.to_s, skills_dir.join('rubocop-kaia-refactor-all-violations').to_s)
 
       described_class.install(project_dir: project_dir)
 
-      link = skills_dir.join('refactor-all-violations')
+      link = skills_dir.join('rubocop-kaia-refactor-all-violations')
       expect(link).to be_symlink
-      expect(link.readlink).to eq(described_class.gem_root.join('skills', 'refactor-all-violations'))
+      expect(link.readlink).to eq(described_class.gem_root.join('skills', 'rubocop-kaia-refactor-all-violations'))
 
       FileUtils.rm_rf(stale_target)
     end

@@ -1,5 +1,5 @@
 ---
-name: refactor-service-no-added-class-methods
+name: rubocop-kaia-refactor-service-no-added-class-methods
 description: >-
   Refactors code violating the Kaia/ServiceNoAddedClassMethods RuboCop cop. This cop prohibits
   class methods (other than self.call) in service classes. Use when a *Service class defines

@@ -1,5 +1,5 @@
 ---
-name: refactor-all-violations
+name: rubocop-kaia-refactor-all-violations
 description: >-
   Cycles through a RuboCop exclusion list (e.g. .rubocop_custom_todo.yml) and attempts to
   refactor each Kaia cop violation into compliant code. Each successful fix is committed
@@ -65,13 +65,13 @@ For each `(cop_name, file_path)` pair:
      ```
 
 4. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
-   - `Kaia/ServiceEntryPoint` → follow [refactor-service-entry-point](../refactor-service-entry-point/SKILL.md)
-   - `Kaia/ServiceFileInheritance` → follow [refactor-service-file-inheritance](../refactor-service-file-inheritance/SKILL.md)
-   - `Kaia/ServiceFileSuffix` → follow [refactor-service-file-suffix](../refactor-service-file-suffix/SKILL.md)
-   - `Kaia/ServiceNoAddedClassMethods` → follow [refactor-service-no-added-class-methods](../refactor-service-no-added-class-methods/SKILL.md)
-   - `Kaia/ServiceNoAddedPublicMethods` → follow [refactor-service-no-added-public-methods](../refactor-service-no-added-public-methods/SKILL.md)
-   - `Kaia/ServiceSuffix` → follow [refactor-service-suffix](../refactor-service-suffix/SKILL.md)
-   - `Kaia/UseMemoWise` → follow [refactor-use-memo-wise](../refactor-use-memo-wise/SKILL.md)
+   - `Kaia/ServiceEntryPoint` → follow [rubocop-kaia-refactor-service-entry-point](../rubocop-kaia-refactor-service-entry-point/SKILL.md)
+   - `Kaia/ServiceFileInheritance` → follow [rubocop-kaia-refactor-service-file-inheritance](../rubocop-kaia-refactor-service-file-inheritance/SKILL.md)
+   - `Kaia/ServiceFileSuffix` → follow [rubocop-kaia-refactor-service-file-suffix](../rubocop-kaia-refactor-service-file-suffix/SKILL.md)
+   - `Kaia/ServiceNoAddedClassMethods` → follow [rubocop-kaia-refactor-service-no-added-class-methods](../rubocop-kaia-refactor-service-no-added-class-methods/SKILL.md)
+   - `Kaia/ServiceNoAddedPublicMethods` → follow [rubocop-kaia-refactor-service-no-added-public-methods](../rubocop-kaia-refactor-service-no-added-public-methods/SKILL.md)
+   - `Kaia/ServiceSuffix` → follow [rubocop-kaia-refactor-service-suffix](../rubocop-kaia-refactor-service-suffix/SKILL.md)
+   - `Kaia/UseMemoWise` → follow [rubocop-kaia-refactor-use-memo-wise](../rubocop-kaia-refactor-use-memo-wise/SKILL.md)
 
    Then validate:
    ```sh

@@ -1,5 +1,5 @@
 ---
-name: refactor-service-suffix
+name: rubocop-kaia-refactor-service-suffix
 description: >-
   Refactors code violating the Kaia/ServiceSuffix RuboCop cop. This cop enforces that classes
   inheriting from a *Service parent must themselves end with "Service". Use when a class

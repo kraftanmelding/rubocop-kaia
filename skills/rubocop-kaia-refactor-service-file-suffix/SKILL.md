@@ -1,5 +1,5 @@
 ---
-name: refactor-service-file-suffix
+name: rubocop-kaia-refactor-service-file-suffix
 description: >-
   Refactors code violating the Kaia/ServiceFileSuffix RuboCop cop. This cop enforces that
   top-level classes in app/services/ have a name ending with "Service". Use when a class

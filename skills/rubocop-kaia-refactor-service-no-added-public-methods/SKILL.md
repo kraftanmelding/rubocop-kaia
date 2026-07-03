@@ -1,5 +1,5 @@
 ---
-name: refactor-service-no-added-public-methods
+name: rubocop-kaia-refactor-service-no-added-public-methods
 description: >-
   Refactors code violating the Kaia/ServiceNoAddedPublicMethods RuboCop cop. This cop enforces
   that only call and initialize can be public in service classes. Use when a *Service class
