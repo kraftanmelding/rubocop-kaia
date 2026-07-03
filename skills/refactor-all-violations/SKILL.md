@@ -39,7 +39,24 @@ For each `(cop_name, file_path)` pair:
    git stash push -m "before refactoring ${cop_name} in ${file_path}"
    ```
 
-2. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
+2. **Attempt RuboCop autocorrection first**: Try the built-in autocorrect before resorting to manual refactoring:
+   ```sh
+   bundle exec rubocop -A --only ${cop_name} ${file_path}
+   ```
+
+   Then validate:
+   ```sh
+   bundle exec rubocop --only ${cop_name} ${file_path}
+   bundle exec rspec
+   ```
+
+   - **If autocorrection succeeded** (RuboCop passes, RSpec passes): skip to step 4 ("Handle the result — successful").
+   - **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 3:
+     ```sh
+     git checkout -- .
+     ```
+
+3. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
    - `Kaia/ServiceEntryPoint` → follow [refactor-service-entry-point](../refactor-service-entry-point/SKILL.md)
    - `Kaia/ServiceFileInheritance` → follow [refactor-service-file-inheritance](../refactor-service-file-inheritance/SKILL.md)
    - `Kaia/ServiceFileSuffix` → follow [refactor-service-file-suffix](../refactor-service-file-suffix/SKILL.md)
@@ -48,7 +65,7 @@ For each `(cop_name, file_path)` pair:
    - `Kaia/ServiceSuffix` → follow [refactor-service-suffix](../refactor-service-suffix/SKILL.md)
    - `Kaia/UseMemoWise` → follow [refactor-use-memo-wise](../refactor-use-memo-wise/SKILL.md)
 
-3. **Validate the refactoring**:
+   Then validate:
    ```sh
    bundle exec rubocop --only ${cop_name} ${file_path}
    bundle exec rspec
@@ -101,11 +118,13 @@ After completion, provide a summary:
 Refactoring Summary:
   Total violations processed: N
   Successfully refactored: X
+    - via autocorrection: A
+    - via skill-based refactoring: S
   Skipped (failed): Y
 
   Successful:
-    - Kaia/ServiceEntryPoint in app/services/foo.rb
-    - Kaia/ServiceSuffix in app/services/bar.rb
+    - Kaia/UseMemoWise in app/services/foo.rb (autocorrected)
+    - Kaia/ServiceEntryPoint in app/services/bar.rb (skill-based)
 
   Skipped:
     - Kaia/ServiceNoAddedClassMethods in app/services/baz.rb (reason: external callers)
