@@ -1,0 +1,1 @@
+../../skills/refactor-service-no-added-class-methods.md
