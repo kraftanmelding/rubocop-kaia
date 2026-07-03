@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/ServiceFileSuffix Violations
+---
+name: refactor-service-file-suffix
+description: >-
+  Refactors code violating the Kaia/ServiceFileSuffix RuboCop cop. This cop enforces that
+  top-level classes in app/services/ have a name ending with "Service". Use when a class
+  in the services directory is missing the Service suffix.
+---
 
 ## Cop Description
 

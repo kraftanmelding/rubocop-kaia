@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/ServiceEntryPoint Violations
+---
+name: refactor-service-entry-point
+description: >-
+  Refactors code violating the Kaia/ServiceEntryPoint RuboCop cop. This cop enforces that
+  service classes are only invoked via .call. Use when a file is flagged for calling .new,
+  .perform, or any method other than .call on a *Service class.
+---
 
 ## Cop Description
 

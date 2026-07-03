@@ -1,1 +1,0 @@
-../../skills/refactor-use-memo-wise.md

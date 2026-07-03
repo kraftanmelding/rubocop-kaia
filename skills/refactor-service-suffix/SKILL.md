@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/ServiceSuffix Violations
+---
+name: refactor-service-suffix
+description: >-
+  Refactors code violating the Kaia/ServiceSuffix RuboCop cop. This cop enforces that classes
+  inheriting from a *Service parent must themselves end with "Service". Use when a class
+  inherits from ApplicationService or similar but lacks the Service suffix.
+---
 
 ## Cop Description
 

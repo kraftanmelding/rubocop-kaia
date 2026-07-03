@@ -1,1 +1,0 @@
-../../skills/refactor-service-file-inheritance.md

@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/UseMemoWise Violations
+---
+name: refactor-use-memo-wise
+description: >-
+  Refactors code violating the Kaia/UseMemoWise RuboCop cop. This cop detects manual
+  memoization patterns (@ivar ||= or defined?-guard) and enforces memo_wise instead.
+  Use when a method uses manual instance variable memoization. Supports safe autocorrect.
+---
 
 ## Cop Description
 

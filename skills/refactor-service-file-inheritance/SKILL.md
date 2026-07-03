@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/ServiceFileInheritance Violations
+---
+name: refactor-service-file-inheritance
+description: >-
+  Refactors code violating the Kaia/ServiceFileInheritance RuboCop cop. This cop enforces that
+  top-level classes in app/services/ inherit from a *Service parent class. Use when a service
+  file class has no parent or inherits from a non-Service class.
+---
 
 ## Cop Description
 

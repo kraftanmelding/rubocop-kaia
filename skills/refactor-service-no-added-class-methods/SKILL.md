@@ -1,4 +1,10 @@
-# Skill: Refactor Kaia/ServiceNoAddedClassMethods Violations
+---
+name: refactor-service-no-added-class-methods
+description: >-
+  Refactors code violating the Kaia/ServiceNoAddedClassMethods RuboCop cop. This cop prohibits
+  class methods (other than self.call) in service classes. Use when a *Service class defines
+  def self.method or uses class << self.
+---
 
 ## Cop Description
 
