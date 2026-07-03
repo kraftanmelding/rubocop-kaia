@@ -17,7 +17,12 @@ Gem::Specification.new do |spec|
   spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.post_install_message = <<~MSG
-    rubocop-kaia: To install Claude skills into your project, run:
+    rubocop-kaia: To install Claude skills into your project, first load the
+    Rake task by adding this to your Rakefile:
+
+      require 'rubocop/kaia/rake_task'
+
+    Then run:
 
       bundle exec rake rubocop_kaia:install_skills
 

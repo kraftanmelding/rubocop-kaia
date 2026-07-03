@@ -8,7 +8,7 @@ module RuboCop
     # automatically in Rails applications.
     class Railtie < ::Rails::Railtie
       rake_tasks do
-        load File.expand_path('../tasks/rubocop_kaia.rake', __dir__)
+        load File.expand_path('../../tasks/rubocop_kaia.rake', __dir__)
       end
     end
   end
