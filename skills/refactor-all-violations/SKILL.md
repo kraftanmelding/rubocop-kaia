@@ -39,7 +39,15 @@ For each `(cop_name, file_path)` pair:
    git stash push -m "before refactoring ${cop_name} in ${file_path}"
    ```
 
-2. **Attempt RuboCop autocorrection first**: Try the built-in autocorrect before resorting to manual refactoring:
+2. **Identify relevant specs**: Before making changes, find the specs that cover the file being
+   refactored. These are the specs that will be used to validate each change (the full suite
+   runs in CI anyway). Use these heuristics:
+   - Look for a matching spec file (e.g. `app/services/foo_service.rb` → `spec/services/foo_service_spec.rb`).
+   - Search for specs that reference the class name (e.g. `grep -rl 'FooService' spec/`).
+   - Include any request/integration specs that exercise the service's callers if renamed.
+   - Collect all matches into `${relevant_specs}` (space-separated list of spec files).
+
+3. **Attempt RuboCop autocorrection first**: Try the built-in autocorrect before resorting to manual refactoring:
    ```sh
    bundle exec rubocop -A --only ${cop_name} ${file_path}
    ```
@@ -47,16 +55,16 @@ For each `(cop_name, file_path)` pair:
    Then validate:
    ```sh
    bundle exec rubocop --only ${cop_name} ${file_path}
-   bundle exec rspec
+   bundle exec rspec ${relevant_specs}
    ```
 
-   - **If autocorrection succeeded** (RuboCop passes, RSpec passes): skip to step 4 ("Handle the result — successful").
-   - **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 3:
+   - **If autocorrection succeeded** (RuboCop passes, specs pass): skip to step 5 ("Handle the result — successful").
+   - **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 4:
      ```sh
      git checkout -- .
      ```
 
-3. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
+4. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
    - `Kaia/ServiceEntryPoint` → follow [refactor-service-entry-point](../refactor-service-entry-point/SKILL.md)
    - `Kaia/ServiceFileInheritance` → follow [refactor-service-file-inheritance](../refactor-service-file-inheritance/SKILL.md)
    - `Kaia/ServiceFileSuffix` → follow [refactor-service-file-suffix](../refactor-service-file-suffix/SKILL.md)
@@ -68,12 +76,12 @@ For each `(cop_name, file_path)` pair:
    Then validate:
    ```sh
    bundle exec rubocop --only ${cop_name} ${file_path}
-   bundle exec rspec
+   bundle exec rspec ${relevant_specs}
    ```
 
-4. **Handle the result**:
+5. **Handle the result**:
 
-   **If successful** (RuboCop passes, RSpec passes):
+   **If successful** (RuboCop passes, relevant specs pass):
    - Remove the file from the exclusion list for this cop in the exclusion file.
    - Commit the changes:
      ```sh
@@ -81,7 +89,7 @@ For each `(cop_name, file_path)` pair:
      git commit -m "Refactor: fix ${cop_name} violation in ${file_path}"
      ```
 
-   **If failed** (tests break or refactoring is unclear):
+   **If failed** (specs break or refactoring is unclear):
    - Revert all changes:
      ```sh
      git checkout -- .
