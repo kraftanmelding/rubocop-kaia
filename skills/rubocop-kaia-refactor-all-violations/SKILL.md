@@ -68,6 +68,16 @@ step 5 "Handle genuine public endpoints"). Creating new service classes also res
 
 ### Step 2: Fix All Cops Per Service (Not One Cop at a Time)
 
+**🚨 HARD RULE: Run full-project rubocop before every commit and push.**
+
+```sh
+bundle exec rubocop --only Kaia/ServiceEntryPoint,Kaia/ServiceFileInheritance,Kaia/ServiceFileSuffix,Kaia/ServiceNoAddedClassMethods,Kaia/ServiceNoAddedPublicMethods,Kaia/ServiceSuffix,Kaia/UseMemoWise
+```
+
+If this shows ANY offenses, do NOT push. Fix them first. Commit only when clean.
+This catches accidental exclusion removals caused by broad sed operations on
+`.rubocop_custom_todo.yml`.
+
 **Critical principle**: When you touch a service file, fix ALL Kaia cop violations
 for that file at once. Removing a file from one cop while leaving it excluded from
 others creates half-fixed services that are incompatible with cops you haven't
