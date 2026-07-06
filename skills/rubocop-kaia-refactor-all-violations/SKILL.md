@@ -77,6 +77,13 @@ fully fixed, creating accountability for future refactoring rounds.
 - "app/services/baz.rb"  # attempted: external callers would break
 ```
 
+**`# attempted` only after genuinely trying.** Before marking a service as impossible,
+apply EVERY relevant cop-specific skill to it. Really attempt the refactoring — add
+`< ApplicationService`, make methods private, add `self.call` wrapper, update callers,
+run specs. Only give up and add `# attempted` when the refactoring actually breaks
+tests or external callers. The reason in the comment must come from real work, not
+assumptions. These reasons become data for improving the skills later.
+
 **🚨 HARD RULE: Run full-project rubocop before every commit and push.**
 
 ```sh
