@@ -5,18 +5,18 @@ require 'pathname'
 
 module RuboCop
   module Kaia
-    # Installs Claude skill symlinks from the gem into the consuming project.
+    # Installs Claude skill files from the gem into the consuming project.
     #
-    # Each skill directory under the gem's `skills/` folder is symlinked into
+    # Each skill directory under the gem's `skills/` folder is copied into
     # the project's `.claude/skills/` directory, making them available for
     # Claude Code to discover automatically.
     module SkillsInstaller
       class << self
-        # Installs skill symlinks into the given project directory.
+        # Installs skill directories into the given project directory.
         #
         # @param project_dir [String, Pathname] the root of the consuming project
         #   (defaults to the current working directory)
-        # @return [Array<String>] list of skill names that were symlinked
+        # @return [Array<String>] list of skill names that were copied
         def install(project_dir: Dir.pwd)
           project_dir = Pathname.new(project_dir)
           target_dir = project_dir.join('.claude', 'skills')
@@ -27,8 +27,7 @@ module RuboCop
           FileUtils.mkdir_p(target_dir)
 
           gem_skills_dir.children.select(&:directory?).sort.map do |skill_dir|
-            link_path = target_dir.join(skill_dir.basename)
-            create_symlink(skill_dir, link_path)
+            copy_skill(skill_dir, target_dir)
             skill_dir.basename.to_s
           end
         end
@@ -42,18 +41,10 @@ module RuboCop
 
         private
 
-        def create_symlink(source, link_path)
-          if link_path.symlink?
-            # Update if pointing to a different target
-            return if link_path.readlink == source
-
-            link_path.delete
-          elsif link_path.exist?
-            # A real directory/file exists — don't overwrite
-            return
-          end
-
-          FileUtils.ln_s(source.to_s, link_path.to_s)
+        def copy_skill(source, target_dir)
+          dest = target_dir.join(source.basename)
+          FileUtils.rm_rf(dest) if dest.exist?
+          FileUtils.cp_r(source.to_s, dest.to_s)
         end
       end
     end
