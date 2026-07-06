@@ -87,6 +87,10 @@ If this shows ANY offenses, do NOT push. Fix them first. Commit only when clean.
 This catches accidental exclusion removals caused by broad sed operations on
 `.rubocop_custom_todo.yml`.
 
+**Never use `--no-verify` to skip overcommit.** If overcommit's RuboCop hook
+autocorrects and loops, run `bundle exec rubocop -A` manually, `git add` the
+corrected files, then commit normally. `--no-verify` pushes broken code to CI.
+
 **Critical principle**: When you touch a service file, fix ALL Kaia cop violations
 for that file at once. Removing a file from one cop while leaving it excluded from
 others creates half-fixed services that are incompatible with cops you haven't
