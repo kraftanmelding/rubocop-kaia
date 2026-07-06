@@ -86,8 +86,10 @@ end
 
    **Never define `self.call` if inheriting `ApplicationService`.** `ApplicationService`
    already provides `def self.call(...) = new(...).call`. Just add `initialize` to accept
-   the arguments and an instance `call` method. The inherited `self.call` forwards
-   everything automatically.
+the arguments and an instance `call` method. The inherited `self.call` forwards
+everything automatically.
+
+Never use `send` or metaprogramming for dispatch — use explicit `case`/`when`.
 
    **Use self.call dispatch for multi-operation services:**
    When a service has multiple class methods representing different operations,
