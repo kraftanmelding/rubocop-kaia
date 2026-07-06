@@ -119,25 +119,6 @@ end
    # Callers: CurrencyService.sek_to_nok → CurrencyService.call(from: 'SEK', to: 'NOK')
    ```
 
-   **Convert class to module (utility/scraper pattern):**
-   When a service class is primarily a collection of utility methods with no shared
-   instance state, convert it to a module. Modules are not checked by the `Kaia/*`
-   cops. This is appropriate for scrapers, API clients, and pure utility collections.
-
-   ```ruby
-   # before
-   class SkmScraperService
-     def self.spot_close; end
-     def self.monthly_prices(year); end
-   end
-
-   # after
-   module SkmScraper
-     def self.spot_close; end
-     def self.monthly_prices(year); end
-   end
-   ```
-
 4. **Update all call sites**: Search for references to the old class method and update:
    ```sh
    grep -rn "PaymentService\.default_currency" app/ spec/ --include="*.rb"
