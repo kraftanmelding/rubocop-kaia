@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
-require 'rails/railtie'
+begin
+  require 'rails/railtie'
+rescue LoadError
+  # Rails is not available in this environment (e.g., CI, non-Rails projects).
+  # The Railtie is skipped; rake tasks and other Rails-specific features
+  # will not be registered.
+  return
+end
 
 module RuboCop
   module Kaia
