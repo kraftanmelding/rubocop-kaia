@@ -41,6 +41,13 @@ previous run and should not be re-attempted. Format:
 
 Count these as `previously_attempted` for the summary.
 
+**Coordinated refactoring.** When a file appears under both `Kaia/ServiceNoAddedPublicMethods`
+and `Kaia/ServiceEntryPoint`, group them and handle them together. Services with multiple
+public endpoints should be split into separate services (see the
+[rubocop-kaia-refactor-service-no-added-public-methods skill](../rubocop-kaia-refactor-service-no-added-public-methods/SKILL.md),
+step 5 "Handle genuine public endpoints"). Creating new service classes also resolves
+`Kaia/ServiceEntryPoint` violations since callers must switch to `.call`.
+
 ### Step 2: Iterate Through Each Violation
 
 For each `(cop_name, file_path)` pair:

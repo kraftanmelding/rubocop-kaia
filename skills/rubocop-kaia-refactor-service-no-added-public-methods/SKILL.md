@@ -89,7 +89,62 @@ end
    - Extract it to a utility class or module that is not a service.
    - Expose it through the return value of `call`.
 
-5. **Verify**: Run `bundle exec rubocop --only Kaia/ServiceNoAddedPublicMethods <file>` on each changed file. Run `bundle exec rspec` for affected specs.
+5. **Handle genuine public endpoints — extract into separate services.** If the extra
+   public method is a meaningful public operation called from external code (not just an
+   internal helper), do NOT make it private. Instead, extract it into its own service
+   class following the "one service, one `call`" convention:
+
+   ```ruby
+   # before — PaymentService has charge, refund, and void as separate public endpoints
+   class PaymentService < ApplicationService
+     def charge(amount)
+       # ...
+     end
+
+     def refund(transaction_id)
+       # ...
+     end
+
+     def void(transaction_id)
+       # ...
+     end
+   end
+
+   # after — each operation is its own service
+   class PaymentChargeService < ApplicationService
+     def call(amount)
+       # ...
+     end
+   end
+
+   class PaymentRefundService < ApplicationService
+     def call(transaction_id)
+       # ...
+     end
+   end
+
+   class PaymentVoidService < ApplicationService
+     def call(transaction_id)
+       # ...
+     end
+   end
+   ```
+
+   Steps for extraction:
+   - Create a new service file for each extracted operation (e.g.,
+     `app/services/payment_charge_service.rb`).
+   - Name each new class with the `Service` suffix.
+   - Move the method body into `call`, accepting the same parameters.
+   - Update all callers — `PaymentService.new.charge(100)` becomes
+     `PaymentChargeService.call(100)`.
+   - Delete the original method from the source service.
+   - If the original service is now empty (no methods left), delete it.
+   - **Both `Kaia/ServiceNoAddedPublicMethods` and `Kaia/ServiceEntryPoint`**
+     violations will be resolved together — treat them as a single coordinated
+     refactoring. Also run `Kaia/ServiceFileSuffix` and `Kaia/ServiceSuffix` checks
+     on the new files.
+
+6. **Verify**: Run `bundle exec rubocop --only Kaia/ServiceNoAddedPublicMethods <file>` on each changed file. Run `bundle exec rspec` for affected specs.
 
 ## Result Handling
 
