@@ -144,7 +144,51 @@ end
      refactoring. Also run `Kaia/ServiceFileSuffix` and `Kaia/ServiceSuffix` checks
      on the new files.
 
-6. **Verify**: Run `bundle exec rubocop --only Kaia/ServiceNoAddedPublicMethods <file>` on each changed file. Run `bundle exec rspec` for affected specs.
+6. **Handle query objects with `Data.define` — when `.new` + multiple accessors is the API:**
+   Some services follow a query-object pattern where callers use `.new(args)` then
+   access multiple query methods (`market_price`, `bid_graphs`, etc.) on the returned
+   object. Converting these to separate services would break the view layer.
+
+   Instead, define a `Data` value class, keep `initialize` for injection, and make
+   `call` return an instance of the Data class with all query results. All query
+   methods become private. Use `Data.define` (not `OpenStruct`) — it is immutable,
+   faster, and has a proper `#===` for pattern matching:
+
+   ```ruby
+   # before — query object with multiple public accessors
+   class ReportQueryService < ApplicationService
+     def initialize(report_id:)
+       @report = Report.find(report_id)
+     end
+
+     def total; @report.line_items.sum(:amount); end
+     def count; @report.line_items.count; end
+     def average; total / count; end
+   end
+
+   # after — Data value class + single call returning it
+   class ReportQueryService < ApplicationService
+     Result = Data.define(:total, :count, :average)
+
+     def initialize(report_id:)
+       @report = Report.find(report_id)
+     end
+
+     def call
+       Result.new(total: total, count: count, average: average)
+     end
+
+     private
+
+     def total; @report.line_items.sum(:amount); end
+     def count; @report.line_items.count; end
+     def average; total / count; end
+   end
+   ```
+
+   Update callers: `ReportQueryService.new(report_id: 1).total` → `ReportQueryService.call(report_id: 1).total`
+
+7. **Verify**: Run `bundle exec rubocop --only Kaia/ServiceNoAddedPublicMethods <file>` on each changed file. Run `bundle exec rspec` for affected specs.
 
 ## Result Handling
 
