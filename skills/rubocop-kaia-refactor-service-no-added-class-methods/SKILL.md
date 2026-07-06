@@ -84,6 +84,60 @@ end
    end
    ```
 
+   **Use self.call dispatch for multi-operation services:**
+   When a service has multiple class methods representing different operations,
+   convert to a single `self.call` entry point that dispatches based on arguments.
+   This simultaneously satisfies `Kaia/ServiceNoAddedClassMethods` (only `self.call`
+   allowed), `Kaia/ServiceEntryPoint` (callers use `.call`), and
+   `Kaia/ServiceNoAddedPublicMethods` (instance methods can be made private).
+
+   ```ruby
+   # before – multiple class methods
+   class CurrencyService
+     def self.sek_to_nok
+       new(currency: SEK).to_nok
+     end
+
+     def self.eur_to_nok
+       new(currency: EUR).to_nok
+     end
+   end
+
+   # after – single self.call with dispatch args
+   class CurrencyService
+     def self.call(from:, to:, amount: 1, date: Date.today)
+       new(currency: from, amount: amount, date: date).convert(to)
+     end
+
+     private
+
+     def convert(to)
+       exchange_rate_nok * amount # ...conversion logic
+     end
+   end
+
+   # Callers: CurrencyService.sek_to_nok → CurrencyService.call(from: 'SEK', to: 'NOK')
+   ```
+
+   **Convert class to module (utility/scraper pattern):**
+   When a service class is primarily a collection of utility methods with no shared
+   instance state, convert it to a module. Modules are not checked by the `Kaia/*`
+   cops. This is appropriate for scrapers, API clients, and pure utility collections.
+
+   ```ruby
+   # before
+   class SkmScraperService
+     def self.spot_close; end
+     def self.monthly_prices(year); end
+   end
+
+   # after
+   module SkmScraper
+     def self.spot_close; end
+     def self.monthly_prices(year); end
+   end
+   ```
+
 4. **Update all call sites**: Search for references to the old class method and update:
    ```sh
    grep -rn "PaymentService\.default_currency" app/ spec/ --include="*.rb"
