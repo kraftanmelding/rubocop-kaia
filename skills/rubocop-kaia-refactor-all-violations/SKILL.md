@@ -31,15 +31,24 @@ Kaia/ServiceSuffix:
 Parse it into a list of `(cop_name, file_path)` pairs.
 
 **Skip previously attempted entries.** During parsing, skip any exclude line that has an
-`# attempted` comment at the end of the line. These are violations that failed in a
-previous run and should not be re-attempted. Format:
+`# attempted` comment at the end of the line (outside the quoted file path — see below).
+These are violations that failed in a previous run and should not be re-attempted.
+Count these as `previously_attempted` for the summary.
+
+**`# attempted` comment placement — critical.** The comment must go AFTER the closing quote
+of the YAML string, NOT inside it:
 
 ```yaml
+    # CORRECT — comment is after the closing quote:
     - "app/services/baz.rb"  # attempted
     - "app/services/qux.rb"  # attempted: external callers would break
+
+    # WRONG — comment inside the string, breaks RuboCop parsing:
+    - "app/services/baz.rb  # attempted"
 ```
 
-Count these as `previously_attempted` for the summary.
+When parsing, detect the comment by looking for `# attempted` after the closing quote on the line.
+When writing, always append the comment after `"` (the closing quote).
 
 **Coordinated refactoring.** When a file appears under both `Kaia/ServiceNoAddedPublicMethods`
 and `Kaia/ServiceEntryPoint`, group them and handle them together. Services with multiple
@@ -52,71 +61,90 @@ step 5 "Handle genuine public endpoints"). Creating new service classes also res
 
 For each `(cop_name, file_path)` pair:
 
-1. **Create a working state**: Note the current git state so changes can be reverted if needed:
-   ```sh
-   git stash push -m "before refactoring ${cop_name} in ${file_path}"
-   ```
+#### 2.1 Identify Relevant Specs
 
-2. **Identify relevant specs**: Before making changes, find the specs that cover the file being
-   refactored. These are the specs that will be used to validate each change (the full suite
-   runs in CI anyway). Use these heuristics:
-   - Look for a matching spec file (e.g. `app/services/foo_service.rb` → `spec/services/foo_service_spec.rb`).
-   - Search for specs that reference the class name (e.g. `grep -rl 'FooService' spec/`).
-   - Include any request/integration specs that exercise the service's callers if renamed.
-   - Collect all matches into `${relevant_specs}` (space-separated list of spec files).
+Before making changes, find the specs that cover the file being refactored. These are the
+specs that will be used to validate each change (the full suite runs in CI anyway). Use
+these heuristics:
 
-3. **Attempt RuboCop autocorrection first**: Try the built-in autocorrect before resorting to manual refactoring:
-   ```sh
-   bundle exec rubocop -A --only ${cop_name} ${file_path}
-   ```
+- Look for a matching spec file (e.g. `app/services/foo_service.rb` → `spec/services/foo_service_spec.rb`).
+- Search for specs that reference the class name (e.g. `grep -rl 'FooService' spec/`).
+- Include any request/integration specs that exercise the service's callers if renamed.
+- Collect all matches into `${relevant_specs}` (space-separated list of spec files).
 
-   Then validate:
-   ```sh
-   bundle exec rubocop --only ${cop_name} ${file_path}
-   bundle exec rspec ${relevant_specs}
-   ```
+#### 2.2 Attempt RuboCop Autocorrection First
 
-   - **If autocorrection succeeded** (RuboCop passes, specs pass): skip to step 5 ("Handle the result — successful").
-   - **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 4:
-     ```sh
-     git checkout -- .
-     ```
+Try the built-in autocorrect before resorting to manual refactoring:
 
-4. **Run the cop-specific refactoring skill**: Apply the corresponding skill:
-   - `Kaia/ServiceEntryPoint` → follow [rubocop-kaia-refactor-service-entry-point](../rubocop-kaia-refactor-service-entry-point/SKILL.md)
-   - `Kaia/ServiceFileInheritance` → follow [rubocop-kaia-refactor-service-file-inheritance](../rubocop-kaia-refactor-service-file-inheritance/SKILL.md)
-   - `Kaia/ServiceFileSuffix` → follow [rubocop-kaia-refactor-service-file-suffix](../rubocop-kaia-refactor-service-file-suffix/SKILL.md)
-   - `Kaia/ServiceNoAddedClassMethods` → follow [rubocop-kaia-refactor-service-no-added-class-methods](../rubocop-kaia-refactor-service-no-added-class-methods/SKILL.md)
-   - `Kaia/ServiceNoAddedPublicMethods` → follow [rubocop-kaia-refactor-service-no-added-public-methods](../rubocop-kaia-refactor-service-no-added-public-methods/SKILL.md)
-   - `Kaia/ServiceSuffix` → follow [rubocop-kaia-refactor-service-suffix](../rubocop-kaia-refactor-service-suffix/SKILL.md)
-   - `Kaia/UseMemoWise` → follow [rubocop-kaia-refactor-use-memo-wise](../rubocop-kaia-refactor-use-memo-wise/SKILL.md)
+```sh
+bundle exec rubocop -A --only ${cop_name} ${file_path}
+```
 
-   Then validate:
-   ```sh
-   bundle exec rubocop --only ${cop_name} ${file_path}
-   bundle exec rspec ${relevant_specs}
-   ```
+Then validate:
 
-5. **Handle the result**:
+```sh
+bundle exec rubocop --only ${cop_name} ${file_path}
+bundle exec rspec ${relevant_specs}
+```
 
-   **If successful** (RuboCop passes, relevant specs pass):
-   - Remove the file from the exclusion list for this cop in the exclusion file.
-   - Commit the changes:
-     ```sh
-     git add -A
-     git commit -m "Refactor: fix ${cop_name} violation in ${file_path}"
-     ```
+- **If autocorrection succeeded** (RuboCop passes, specs pass): skip to step 2.4 ("Handle the result — successful").
+- **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 2.3:
+  ```sh
+  git checkout -- ${file_path}
+  ```
 
-   **If failed** (specs break or refactoring is unclear):
-   - Revert all changes:
-     ```sh
-     git checkout -- .
-     git stash pop  # if stashed
-     ```
-   - Mark the entry as attempted by appending `# attempted` to the exclude line in the
-     exclusion file. If the reason is clear (e.g. "external callers would break"), append
-     a brief explanation: `# attempted: external callers would break`.
-   - Log the failure and continue to the next violation.
+#### 2.3 Run the Cop-Specific Refactoring Skill
+
+**Invoke the corresponding skill explicitly** — do not just infer the steps from memory.
+Load the skill by name using the skill invocation mechanism (`$skill-name` or equivalent
+in your environment). Map of cop to skill name:
+
+| Cop | Skill name |
+|---|---|
+| `Kaia/ServiceEntryPoint` | `rubocop-kaia-refactor-service-entry-point` |
+| `Kaia/ServiceFileInheritance` | `rubocop-kaia-refactor-service-file-inheritance` |
+| `Kaia/ServiceFileSuffix` | `rubocop-kaia-refactor-service-file-suffix` |
+| `Kaia/ServiceNoAddedClassMethods` | `rubocop-kaia-refactor-service-no-added-class-methods` |
+| `Kaia/ServiceNoAddedPublicMethods` | `rubocop-kaia-refactor-service-no-added-public-methods` |
+| `Kaia/ServiceSuffix` | `rubocop-kaia-refactor-service-suffix` |
+| `Kaia/UseMemoWise` | `rubocop-kaia-refactor-use-memo-wise` |
+
+The skill invocation should target the specific file `${file_path}`. The skill will
+make changes to resolve the violation. After the skill completes, validate:
+
+```sh
+bundle exec rubocop --only ${cop_name} ${file_path}
+bundle exec rspec ${relevant_specs}
+```
+
+#### 2.4 Handle the Result
+
+**Commit discipline — one commit per file-cop combination.** Never commit changes to
+multiple files in one commit. If the skill created new files (e.g. extracted a service),
+those new files related to the same violation can be included.
+
+**If successful** (RuboCop passes, relevant specs pass):
+- Remove the file from the exclusion list for this cop in the exclusion file.
+- Commit only the changes for this file:
+  ```sh
+  git add ${file_path}
+  # plus any new files created as part of extraction (e.g. new service files)
+  git commit -m "Refactor: fix ${cop_name} violation in ${file_path}"
+  ```
+
+**If failed** (specs break or refactoring is unclear):
+- Revert all changes:
+  ```sh
+  git checkout -- ${file_path}
+  ```
+- Remove any new files that were created during the attempt.
+- Mark the entry as attempted by appending `# attempted` **after the closing quote** to
+  the exclude line in the exclusion file. If the reason is clear (e.g. "external callers
+  would break"), append a brief explanation:
+  ```yaml
+  - "app/services/baz.rb"  # attempted: external callers would break
+  ```
+- Log the failure and continue to the next violation.
 
 ### Step 3: Clean Up the Exclusion File
 
