@@ -119,6 +119,45 @@ end
    # Callers: CurrencyService.sek_to_nok → CurrencyService.call(from: 'SEK', to: 'NOK')
    ```
 
+   **Operation dispatch with case/when:**
+   When operations don't share common arguments, use an `operation:` keyword
+   with an explicit `case`/`when` dispatch. Each operation maps to a specific
+   private instance method. This is secure by construction — only listed
+   operations are reachable.
+
+   ```ruby
+   # before – multiple independent class methods
+   class ScraperService
+     def self.fetch_prices(date); end
+     def self.fetch_volumes(date); end
+     def self.last_error; end
+   end
+
+   # after – self.call delegates to instance call for private dispatch
+   class ScraperService
+     def self.call(operation:, **args)
+       new.call(operation: operation, **args)
+     end
+
+     def call(operation:, **args)
+       case operation
+       when :fetch_prices  then fetch_prices(args[:date])
+       when :fetch_volumes then fetch_volumes(args[:date])
+       when :last_error    then last_error
+       else raise ArgumentError, "Unknown operation: #{operation}"
+       end
+     end
+
+     private
+
+     def fetch_prices(date); end
+     def fetch_volumes(date); end
+     def last_error; end
+   end
+
+   # Callers: ScraperService.fetch_prices(date) → ScraperService.call(operation: :fetch_prices, date: date)
+   ```
+
 4. **Update all call sites**: Search for references to the old class method and update:
    ```sh
    grep -rn "PaymentService\.default_currency" app/ spec/ --include="*.rb"
