@@ -154,7 +154,21 @@ bundle exec rspec ${relevant_specs}
 multiple files in one commit. If the skill created new files (e.g. extracted a service),
 those new files related to the same violation can be included.
 
-**If successful** (RuboCop passes, relevant specs pass):
+**Always run specs locally before committing.** Never rely on CI to catch test failures.
+CI turnaround is too slow for iteration. After making changes:
+
+```sh
+# 1. Verify rubocop passes on changed files
+bundle exec rubocop --only ${cop_name} ${file_path} ${caller_files}
+
+# 2. Run ALL relevant specs locally (not just the service spec)
+bundle exec rspec ${relevant_specs}
+```
+
+Only commit and push when both pass. If CI later finds additional failures, run those
+failing specs locally to reproduce and fix.
+
+**If successful** (RuboCop passes, relevant specs pass locally):
 - The file has already been removed from the exclusion list in step 2.0.
 - Commit only the changes for this violation:
   ```sh
