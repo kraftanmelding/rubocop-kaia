@@ -30,6 +30,17 @@ Kaia/ServiceSuffix:
 
 Parse it into a list of `(cop_name, file_path)` pairs.
 
+**Skip previously attempted entries.** During parsing, skip any exclude line that has an
+`# attempted` comment at the end of the line. These are violations that failed in a
+previous run and should not be re-attempted. Format:
+
+```yaml
+    - "app/services/baz.rb"  # attempted
+    - "app/services/qux.rb"  # attempted: external callers would break
+```
+
+Count these as `previously_attempted` for the summary.
+
 ### Step 2: Iterate Through Each Violation
 
 For each `(cop_name, file_path)` pair:
@@ -95,7 +106,9 @@ For each `(cop_name, file_path)` pair:
      git checkout -- .
      git stash pop  # if stashed
      ```
-   - Leave the entry in the exclusion list.
+   - Mark the entry as attempted by appending `# attempted` to the exclude line in the
+     exclusion file. If the reason is clear (e.g. "external callers would break"), append
+     a brief explanation: `# attempted: external callers would break`.
    - Log the failure and continue to the next violation.
 
 ### Step 3: Clean Up the Exclusion File
@@ -124,16 +137,21 @@ After completion, provide a summary:
 
 ```
 Refactoring Summary:
-  Total violations processed: N
-  Successfully refactored: X
-    - via autocorrection: A
-    - via skill-based refactoring: S
-  Skipped (failed): Y
+  Total violations in exclusion file: N
+  Previously attempted (skipped): P
+  Processed this run: M
+    - Successfully refactored: X
+      - via autocorrection: A
+      - via skill-based refactoring: S
+    - Failed this run: Y
 
   Successful:
     - Kaia/UseMemoWise in app/services/foo.rb (autocorrected)
     - Kaia/ServiceEntryPoint in app/services/bar.rb (skill-based)
 
-  Skipped:
+  Failed:
     - Kaia/ServiceNoAddedClassMethods in app/services/baz.rb (reason: external callers)
+
+  Previously attempted (not re-run):
+    - Kaia/ServiceSuffix in app/services/legacy.rb
 ```
