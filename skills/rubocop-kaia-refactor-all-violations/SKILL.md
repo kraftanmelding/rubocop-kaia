@@ -68,6 +68,15 @@ step 5 "Handle genuine public endpoints"). Creating new service classes also res
 
 ### Step 2: Fix All Cops Per Service (Not One Cop at a Time)
 
+**🚨 Re-adding to exclusions requires `# attempted` comment.** Once a file is removed
+from the exclusion list, the only way to put it back is with `# attempted: <reason>`.
+Never silently re-add exclusions — the comment documents why the service couldn't be
+fully fixed, creating accountability for future refactoring rounds.
+
+```yaml
+- "app/services/baz.rb"  # attempted: external callers would break
+```
+
 **🚨 HARD RULE: Run full-project rubocop before every commit and push.**
 
 ```sh
