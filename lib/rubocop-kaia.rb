@@ -10,4 +10,4 @@ require_relative 'rubocop/cop/kaia/service_no_added_public_methods'
 require_relative 'rubocop/cop/kaia/service_suffix'
 require_relative 'rubocop/cop/kaia/use_memo_wise'
 
-require_relative 'rubocop/kaia/railtie' if defined?(Rails::Railtie)
+require_relative 'rubocop/kaia/railtie'

@@ -61,18 +61,33 @@ step 5 "Handle genuine public endpoints"). Creating new service classes also res
 
 For each `(cop_name, file_path)` pair:
 
+#### 2.0 Remove from Exclusion Before Checking
+
+**Critical**: The inherited exclusion list actively prevents the cop from running on the
+file — even when the file is passed explicitly on the CLI. You must remove the file from
+the `Exclude` list **before** running rubocop to check for offenses:
+
+1. Edit the exclusion file and remove the line for `file_path` from the cop's `Exclude` list.
+2. If the cop section has a `# Offense count: N` comment, decrement it.
+3. If the `Exclude` list becomes empty, remove the entire cop section.
+
 #### 2.1 Identify Relevant Specs
 
-Before making changes, find the specs that cover the file being refactored. These are the
-specs that will be used to validate each change (the full suite runs in CI anyway). Use
-these heuristics:
+Before making changes, find the specs that cover the file being refactored. Use these
+heuristics:
 
 - Look for a matching spec file (e.g. `app/services/foo_service.rb` → `spec/services/foo_service_spec.rb`).
-- Search for specs that reference the class name (e.g. `grep -rl 'FooService' spec/`).
+- Search for specs that reference the class name (e.g. `grep -rn 'FooService' spec/`).
 - Include any request/integration specs that exercise the service's callers if renamed.
 - Collect all matches into `${relevant_specs}` (space-separated list of spec files).
 
-#### 2.2 Attempt RuboCop Autocorrection First
+#### 2.2 Attempt RuboCop Autocorrection (If Supported)
+
+**First, check if the cop supports autocorrection.** Not all cops do. Naming cops
+like `Kaia/ServiceSuffix` and `Kaia/ServiceFileSuffix` have no autocorrect behavior —
+skip this step for those. Inheritance cops like `Kaia/ServiceFileInheritance` may have
+limited autocorrect. If unsure, run `rubocop -A` once; if it reports no corrections,
+proceed to step 2.3.
 
 Try the built-in autocorrect before resorting to manual refactoring:
 
@@ -84,11 +99,11 @@ Then validate:
 
 ```sh
 bundle exec rubocop --only ${cop_name} ${file_path}
-bundle exec rspec ${relevant_specs}
 ```
 
-- **If autocorrection succeeded** (RuboCop passes, specs pass): skip to step 2.4 ("Handle the result — successful").
-- **If autocorrection failed or left remaining offenses**: undo the autocorrect changes and proceed to step 2.3:
+- **If autocorrection succeeded** (RuboCop passes): run `bundle exec rspec ${relevant_specs}`
+  and if specs pass, skip to step 2.4 ("Handle the result — successful").
+- **If autocorrection didn't apply or left remaining offenses**: undo and proceed to step 2.3:
   ```sh
   git checkout -- ${file_path}
   ```
@@ -117,6 +132,13 @@ bundle exec rubocop --only ${cop_name} ${file_path}
 bundle exec rspec ${relevant_specs}
 ```
 
+**Note on parallel spec runs**: Running multiple spec files simultaneously against the
+same test database can cause PostgreSQL deadlocks. Run specs sequentially:
+
+```sh
+bundle exec rspec ${relevant_specs}
+```
+
 #### 2.4 Handle the Result
 
 **Commit discipline — one commit per file-cop combination.** Never commit changes to
@@ -124,11 +146,12 @@ multiple files in one commit. If the skill created new files (e.g. extracted a s
 those new files related to the same violation can be included.
 
 **If successful** (RuboCop passes, relevant specs pass):
-- Remove the file from the exclusion list for this cop in the exclusion file.
-- Commit only the changes for this file:
+- The file has already been removed from the exclusion list in step 2.0.
+- Commit only the changes for this violation:
   ```sh
   git add ${file_path}
   # plus any new files created as part of extraction (e.g. new service files)
+  git add .rubocop_custom_todo.yml
   git commit -m "Refactor: fix ${cop_name} violation in ${file_path}"
   ```
 
@@ -138,9 +161,10 @@ those new files related to the same violation can be included.
   git checkout -- ${file_path}
   ```
 - Remove any new files that were created during the attempt.
+- Re-add the entry to the exclusion file for this cop.
 - Mark the entry as attempted by appending `# attempted` **after the closing quote** to
-  the exclude line in the exclusion file. If the reason is clear (e.g. "external callers
-  would break"), append a brief explanation:
+  the exclude line. If the reason is clear (e.g. "external callers would break"), append
+  a brief explanation after the comment:
   ```yaml
   - "app/services/baz.rb"  # attempted: external callers would break
   ```
@@ -161,6 +185,7 @@ After processing all violations:
 ### Step 4: Final Verification
 
 Run the full suite one last time:
+
 ```sh
 bundle exec rubocop
 bundle exec rspec
