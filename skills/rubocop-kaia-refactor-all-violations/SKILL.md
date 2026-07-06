@@ -66,7 +66,32 @@ public endpoints should be split into separate services (see the
 step 5 "Handle genuine public endpoints"). Creating new service classes also resolves
 `Kaia/ServiceEntryPoint` violations since callers must switch to `.call`.
 
-### Step 2: Iterate Through Each Violation
+### Step 2: Fix All Cops Per Service (Not One Cop at a Time)
+
+**Critical principle**: When you touch a service file, fix ALL Kaia cop violations
+for that file at once. Removing a file from one cop while leaving it excluded from
+others creates half-fixed services that are incompatible with cops you haven't
+addressed yet.
+
+For each service file in the exclusion list:
+
+1. **Remove the file from ALL cop sections** in `.rubocop_custom_todo.yml` — not just
+   the cop you're targeting.
+2. **Run rubocop on the file** to see all violations at once:
+   ```sh
+   bundle exec rubocop --only Kaia/ServiceEntryPoint,Kaia/ServiceFileInheritance,Kaia/ServiceFileSuffix,Kaia/ServiceNoAddedClassMethods,Kaia/ServiceNoAddedPublicMethods,Kaia/ServiceSuffix,Kaia/UseMemoWise ${file_path}
+   ```
+3. **Fix them all together**. Apply the appropriate cop-specific skill for each
+   violation, ensuring fixes don't conflict. The `.call` dispatch pattern (adding
+   `self.call`, making instance methods private) often satisfies multiple cops
+   simultaneously.
+4. **Verify everything passes** — rubocop on the service file AND all caller files,
+   plus `bundle exec rspec` on relevant specs. Only then commit.
+
+Never commit a service that passes one cop but triggers another. Half-fixed services
+create technical debt that's harder to resolve later.
+
+### Step 3: Iterate Through Each Violation
 
 For each `(cop_name, file_path)` pair:
 
@@ -193,7 +218,7 @@ failing specs locally to reproduce and fix.
   ```
 - Log the failure and continue to the next violation.
 
-### Step 3: Clean Up the Exclusion File
+### Step 4: Clean Up the Exclusion File
 
 After processing all violations:
 
@@ -205,7 +230,7 @@ After processing all violations:
    git commit -m "Clean up empty exclusions from .rubocop_custom_todo.yml"
    ```
 
-### Step 4: Final Verification
+### Step 5: Final Verification
 
 Run the full suite one last time:
 
