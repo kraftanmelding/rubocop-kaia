@@ -8,11 +8,24 @@ Gem::Specification.new do |spec|
   spec.description = 'A collection of custom RuboCop cops enforcing service class conventions.'
   spec.license = 'MIT'
 
-  spec.files = Dir['lib/**/*', 'config/**/*', 'LICENSE']
+  spec.files = Dir['lib/**/*', 'config/**/*', 'skills/**/*', 'LICENSE']
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 3.1'
 
   spec.add_dependency 'rubocop', '>= 1.0'
   spec.metadata['rubygems_mfa_required'] = 'true'
+
+  spec.post_install_message = <<~MSG
+    rubocop-kaia: To install Claude skills into your project, first load the
+    Rake task by adding this to your Rakefile:
+
+      require 'rubocop/kaia/rake_task'
+
+    Then run:
+
+      bundle exec rake rubocop_kaia:install_skills
+
+    (Rails projects load this task automatically via Railtie.)
+  MSG
 end
