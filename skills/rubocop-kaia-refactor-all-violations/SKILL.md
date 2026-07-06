@@ -10,6 +10,15 @@ description: >-
 
 - The project has an exclusion file (e.g., `.rubocop_custom_todo.yml`) listing files excluded from specific Kaia cops.
 - The project passes `bundle exec rspec` before starting.
+- RuboCop can run the Kaia cops: `bundle exec rubocop --show-cops Kaia/ServiceSuffix` should show `Enabled: true`.
+
+**Note on `require: false`**: If the Gemfile uses `gem 'rubocop-kaia', require: false`,
+the gem's Railtie (and thus the `rubocop_kaia:install_skills` rake task) will not
+auto-load. Install skills manually instead:
+
+```sh
+bundle exec ruby -e 'require "rubocop-kaia"; require "rubocop/kaia/skills_installer"; RuboCop::Kaia::SkillsInstaller.install'
+```
 
 ## Process
 
