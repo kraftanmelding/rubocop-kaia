@@ -84,6 +84,11 @@ end
    end
    ```
 
+   **Never define `self.call` if inheriting `ApplicationService`.** `ApplicationService`
+   already provides `def self.call(...) = new(...).call`. Just add `initialize` to accept
+   the arguments and an instance `call` method. The inherited `self.call` forwards
+   everything automatically.
+
    **Use self.call dispatch for multi-operation services:**
    When a service has multiple class methods representing different operations,
    convert to a single `self.call` entry point that dispatches based on arguments.
